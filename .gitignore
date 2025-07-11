@@ -1,0 +1,32 @@
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# SSH keys and sensitive files
+*.pem
+*.key
+*.crt
+*.csr
+*.vault_pass
+
+# Ansible specific
+*.retry
+*.log
+*.tar.gz
+*.zip
+*.bak
+*.swp
+*.tmp
+*.orig
+inventory.ini
+host_vars/
+group_vars/
+secrets.yml
+vault.yml
+
+# System files
+.DS_Store
+Thumbs.db
+
