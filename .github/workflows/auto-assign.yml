@@ -1,0 +1,15 @@
+name: Auto Assign PRs
+
+on:
+  pull_request:
+    types: [opened, reopened]
+
+jobs:
+  auto-assign:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Auto-assign PR to repo owner
+        uses: kentaro-m/auto-assign-action@v1.2.3
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          configuration-path: ".github/auto_assign.yml"
