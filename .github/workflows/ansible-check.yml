@@ -1,0 +1,32 @@
+name: Ansible Lint & Syntax Check
+
+on:
+  pull_request:
+    paths:
+      - '**.yml'
+      - '**.yaml'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install Ansible and Ansible Lint
+        run: |
+          pip install ansible ansible-lint
+
+      - name: Run Ansible Lint
+        run: ansible-lint .
+
+      - name: Syntax Check Playbooks
+        run: |
+          for file in $(find . -name "*.yml" -o -name "*.yaml"); do
+            ansible-playbook --syntax-check "$file" || exit 1
+          done
