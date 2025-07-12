@@ -1,0 +1,26 @@
+ansible-playbook [core 2.14.18]
+  config file = /opt/_nix_sysadmin/ansible.cfg
+  configured module search path = ['/home/ansible/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
+  ansible python module location = /usr/lib/python3.9/site-packages/ansible
+  ansible collection location = /home/ansible/.ansible/collections:/usr/share/ansible/collections
+  executable location = /usr/bin/ansible-playbook
+  python version = 3.9.21 (main, Jun 27 2025, 00:00:00) [GCC 11.5.0 20240719 (Red Hat 11.5.0-5)] (/usr/bin/python3)
+  jinja version = 3.1.2
+  libyaml = True
+Using /opt/_nix_sysadmin/ansible.cfg as config file
+Skipping callback 'default', as we already have a stdout callback.
+Skipping callback 'minimal', as we already have a stdout callback.
+Skipping callback 'oneline', as we already have a stdout callback.
+
+PLAYBOOK: join_ad.yml **********************************************************
+1 plays in playbooks/join_ad.yml
+
+PLAY [Join Linux host to Active Directory] *************************************
+
+TASK [Gathering Facts] *********************************************************
+task path: /opt/_nix_sysadmin/playbooks/join_ad.yml:10
+fatal: [srv-pgsql-lnx]: UNREACHABLE! => {"changed": false, "msg": "Failed to connect to the host via ssh: ssh: Could not resolve hostname srv-pgsql-lnx: Name or service not known", "unreachable": true}
+
+PLAY RECAP *********************************************************************
+srv-pgsql-lnx              : ok=0    changed=0    unreachable=1    failed=0    skipped=0    rescued=0    ignored=0   
+

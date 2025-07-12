@@ -1,20 +1,126 @@
-### ansible_labs_nix_sysadmin
+```markdown
+# 🛠️ Ansible Labs: UNIX/Linux System Administration Automation
 
-### Handling my personal Ansible project for learning and building tools for LINUX or UNIX administration tasks
-# Ansible Automation UNIX or LINUX System Administration Learning Project
-# Version in file _nix_sysadmin/VERSION
-This repository contains Ansible playbooks, roles, and configurations for automating UNIX or LINUX System Administration tasks.
+!Build Status
+!License
 
-## Structure
-- _nix_sysadmin/playbooks/: Main playbooks to execute.
-- _nix_sysadmin/roles/: Reusable roles for tasks.
-- _nix_sysadmin/inventory/: Inventory files for different environments.
-- _nix_sysadmin/group_vars/ and _nix_sysadmin/host_vars/: Variable definitions.
-- _nix_sysadmin/files/ and _nix_sysadmin/templates/: Static files and Jinja2 templates.
+**Version:** Refer to file `_nix_sysadmin/VERSION`  
+**Author:** _Michael D_  
+**Contact:** _dtmghislain@gmail.com  
 
-# Getting Started
-To run a playbook:
+This repository contains Ansible playbooks, roles, and configurations to automate common UNIX/Linux system administration tasks. It is designed as a learning project and a toolkit for real-world automation.
+
+---
+
+## 📁 Project Structure
+
+```
+_nix_sysadmin/
+├── playbooks/         # Main playbooks to execute
+├── roles/             # Reusable Ansible roles
+├── inventory/         # Inventory files for different environments
+├── group_vars/        # Group-level variable definitions
+├── host_vars/         # Host-specific variable definitions
+├── files/             # Static files used in roles/playbooks
+├── templates/         # Jinja2 templates
+├── logs/              # Output logs from playbook runs
+└── VERSION            # Project version
+```
+
+---
+
+## 🚀 Getting Started
+
+### 1. Update Inventory
+
+Edit the inventory file to reflect your target hosts:
 
 ```bash
-ansible-playbook -i _nix_sysadmin/inventory/nix_Hosts_inventory _nix_sysadmin/playbooks/your_playbook.yml
+_nix_sysadmin/inventory/hosts.ini
+```
 
+---
+
+### 2. Run a Playbook
+
+```bash
+ansible-playbook -i _nix_sysadmin/inventory/hosts.ini _nix_sysadmin/playbooks/your_playbook.yml
+```
+
+---
+
+## 🔐 Active Directory Integration
+
+### 🔸 AD Join Role
+
+**Syntax Check:**
+
+```bash
+ansible-playbook --syntax-check -vv _nix_sysadmin/playbooks/join_ad.yml
+```
+
+**Run Example:**
+
+```bash
+ansible-playbook -i _nix_sysadmin/inventory/hosts.ini _nix_sysadmin/playbooks/join_ad.yml \
+  -e "ad_user=ad_admin ad_password='ad_admin_pwd' domain_name=domain.name realm_upper=DOMAIN.NAME dns_server_ip=127.0.0.1" \
+  --limit ad_host \ #### optional to limit
+  -vv | tee logs/join_ad_output.log
+```
+
+---
+
+### 🔸 AD Authentication Role
+
+**Syntax Check:**
+
+```bash
+ansible-playbook --syntax-check -vv _nix_sysadmin/playbooks/ad_auth.yml
+```
+
+**Run Example:**
+
+```bash
+ansible-playbook -i _nix_sysadmin/inventory/hosts.ini _nix_sysadmin/playbooks/ad_auth.yml \
+  -e "domain=domain.name ad_admin_user=ad_admin dns_server_ip=127.0.0.1" \
+  --limit auth_host \ #### optional to limit
+  -vv | tee logs/ad_auth_output.log
+```
+
+---
+
+## 🧩 Roles Overview
+
+| Role Name | Description |
+|-----------|-------------|
+| `join_ad` | Joins a Linux host to an Active Directory domain |
+| `ad_auth` | Configures AD-based authentication on Linux hosts |
+| *(More roles coming soon...)* | |
+
+---
+
+## 🤝 Contributing
+
+Feel free to fork, modify, and contribute to this project. If you encounter issues or have suggestions, open an issue or contact me directly.
+
+---
+
+## 🐞 Feature Requests & Bug Tracking
+
+To track development progress or report bugs:
+
+- 📌 GitHub Issues
+- 🗂️ Use labels like `bug`, `enhancement`, `help wanted`, etc.
+- ✅ Check existing issues before submitting new ones.
+
+---
+
+## 📬 Need Help?
+
+If you need assistance or have questions about using or extending this project, reach out via:
+
+- 📧 Email: _dtmghislain@gmail_
+- 🐙 GitHub: michaeldefo
+```
+
+---
