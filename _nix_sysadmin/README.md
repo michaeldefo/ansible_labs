@@ -14,7 +14,7 @@ This repository contains Ansible playbooks, roles, and configurations to automat
 
 ## 📁 Project Structure
 
-```
+```text
 _nix_sysadmin/
 ├── playbooks/         # Main playbooks to execute
 ├── roles/             # Reusable Ansible roles
