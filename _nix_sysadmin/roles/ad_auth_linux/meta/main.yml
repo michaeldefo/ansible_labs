@@ -1,0 +1,19 @@
+---
+galaxy_info:
+  version: 0.0.1
+  author: Michael D <dtmghislain@gmail.com>
+  comment: Part of ansible_labs project named nix_sysadmin for automating linux administration tasks
+  repos_dev: https://github.com/michaeldefo/ansible_labs/tree/feature/nix_sysadmin - branch for DEV
+  repos_main: https://github.com/michaeldefo/ansible_labs.git to commit on global repos
+  description: Configure Linux authentication with Active Directory
+  license: MIT
+  min_ansible_version: 2.9
+  platforms:
+    - name: Debian
+      versions:
+        - buster
+        - bullseye
+    - name: EL
+      versions:
+        - 8
+        - 9

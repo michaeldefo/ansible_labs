@@ -1,0 +1,21 @@
+# Metadata
+#version: "0.0.1"
+#author: "Michael D <dtmghislain@gmail.com>"
+#comment: "Part of ansible_labs project named nix_sysadmin for automating linux administration tasks"
+#repos_dev: "https://github.com/michaeldefo/ansible_labs/tree/feature/nix_sysadmin - branch for DEV"
+#repos_main: "https://github.com/michaeldefo/ansible_labs.git to commit on global repos"
+
+---
+#Playbook Ansible pour joindre un hôte Linux à un domaine Active Directory
+- name: Join Linux host to Active Directory
+  hosts: all
+  become: true
+  vars:
+    ad_user: "{{ ad_user }}"
+    ad_password: "{{ ad_password }}"
+    domain_name: "{{ domain_name }}"
+    realm_upper: "{{ realm_upper }}"
+    dns_server_ip: "{{ dns_server_ip }}"
+  roles:
+    - join_ad_linux
+

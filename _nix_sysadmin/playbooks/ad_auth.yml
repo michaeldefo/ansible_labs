@@ -1,0 +1,7 @@
+---
+- name: Configure AD authentication using role
+  hosts: all
+  become: yes
+  roles:
+    - role: ad_auth_linux
+
