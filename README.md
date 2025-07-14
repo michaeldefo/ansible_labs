@@ -2,7 +2,7 @@
 ###Handling my personnal ansible project learning and tools building....
 
 # Ansible Automation Learning Project
-# version 0
+# Looks For Version in VERSION File
 This repository contains Ansible playbooks, roles, and configurations for automating infrastructure and application deployments.
 
 ## Structure
