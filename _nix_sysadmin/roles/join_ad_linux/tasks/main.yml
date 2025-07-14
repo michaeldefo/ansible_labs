@@ -1,0 +1,96 @@
+#---
+# Metadata
+#version: "0.0.1"
+#author: "Michael D <dtmghislain@gmail.com>"
+#comment: "Part of ansible_labs project named nix_sysadmin for automating linux administration tasks"
+#repos_dev: "https://github.com/michaeldefo/ansible_labs/tree/feature/nix_sysadmin - branch for DEV"
+#repos_main: "https://github.com/michaeldefo/ansible_labs.git to commit on global repos"
+
+
+---
+- name: Installer les paquets requis (RHEL)
+  package:
+    name:
+      - sssd
+      - realmd
+      - oddjob
+      - oddjob-mkhomedir
+      - adcli
+      - samba-common
+      - samba-winbind
+      - samba-winbind-clients
+      - krb5-libs
+      - krb5-workstation
+    state: present
+  when: ansible_os_family == "RedHat"
+
+- name: Installer les paquets requis (Debian)
+  package:
+    name:
+      - sssd
+      - realmd
+      - oddjob
+      - oddjob-mkhomedir
+      - adcli
+      - samba-common-bin
+      - winbind
+      - libpam-krb5
+      - libnss-sss
+      - krb5-user
+      - python3-pip
+      - python3-pexpect
+      - sssd-tools
+      - libnss-sss
+      - libpam-sss
+      - packagekit
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: Configurer le DNS
+  become: true
+  lineinfile:
+    path: /etc/resolv.conf
+    line: "nameserver {{ dns_server_ip }}"
+    create: yes
+    state: present
+
+- name: Ajouter le domaine au fichier /etc/hosts
+  become: true
+  lineinfile:
+    path: /etc/hosts
+    line: "{{ dns_server_ip }} {{ domain_name }}"
+    state: present
+- name: Découverte du domaine
+  become: true
+  command: realm discover {{ domain_name }}
+  register: realm_discover
+  changed_when: false
+
+- name: Configurer Kerberos
+  become: true
+  template:
+    src: krb5.conf.j2
+    dest: /etc/krb5.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Redémarrer le service SSSD
+  become: true
+  systemd:
+    name: sssd
+    state: restarted
+    enabled: true
+
+- name: Joindre le domaine Active Directory
+  become: true
+  expect:
+    command: realm join --user={{ ad_user }} {{ domain_name }}
+    responses:
+      Password: "{{ ad_password }}"
+  register: join_result
+
+- name: Afficher les informations système
+  debug:
+    msg: "L'hôte {{ ansible_hostname }} ({{ ansible_distribution }} {{ ansible_distribution_version }}) a été ajouté au domaine {{ domain_name }} avec succès."
+

@@ -1,0 +1,67 @@
+---
+- name: Install required packages (Debian)
+  apt:
+    name:
+      - realmd
+      - sssd
+      - sssd-tools
+      - adcli
+      - samba-common-bin
+      - oddjob
+      - oddjob-mkhomedir
+      - libnss-sss
+      - libpam-sss
+      - krb5-user
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+
+- name: Install required packages (RedHat)
+  dnf:
+    name:
+      - realmd
+      - sssd
+      - oddjob
+      - oddjob-mkhomedir
+      - adcli
+      - samba-common
+      - samba-common-tools
+    state: present
+  when: ansible_os_family == "RedHat"
+
+- name: Configure SSSD with mkhomedir
+  command: authselect select sssd with-mkhomedir --force
+  when: ansible_os_family == "RedHat"
+  ignore_errors: yes
+
+- name: Ensure PAM mkhomedir is configured (Debian)
+  blockinfile:
+    path: /etc/pam.d/common-session
+    block: |
+      session required pam_mkhomedir.so skel=/etc/skel/ umask=0022
+  when: ansible_os_family == "Debian"
+
+- name: Ensure PAM mkhomedir is configured (RedHat)
+  blockinfile:
+    path: /etc/pam.d/login
+    block: |
+      auth       required     pam_nologin.so
+      session    required     pam_mkhomedir.so skel=/etc/skel/ umask=0022
+      auth       sufficient   pam_sss.so
+      account    [default=bad success=ok user_unknown=ignore] pam_sss.so
+      session    optional     pam_sss.so
+  when: ansible_os_family == "RedHat"
+
+- name: Deploy SSSD configuration
+  template:
+    src: sssd.conf.j2
+    dest: /etc/sssd/sssd.conf
+    owner: root
+    group: root
+    mode: '0600'
+
+- name: Restart SSSD
+  service:
+    name: sssd
+    state: restarted
+

@@ -1,0 +1,24 @@
+---
+# Metadata
+version: "0.0.1"
+author: "Michael D <dtmghislain@gmail.com>"
+comment: "Part of ansible_labs project named nix_sysadmin for automating linux administration tasks"
+repos_dev: "https://github.com/michaeldefo/ansible_labs/tree/feature/nix_sysadmin - branch for DEV"
+repos_main: "https://github.com/michaeldefo/ansible_labs.git to commit on global repos"
+
+
+---
+[libdefaults]
+    default_realm = {{ realm_upper }}
+    rdns = false
+
+[realms]
+    {{ realm_upper }} = {
+        kdc = {{ domain_name }}
+        admin_server = {{ domain_name }}
+    }
+
+[domain_realm]
+    .{{ domain_name }} = {{ realm_upper }}
+    {{ domain_name }} = {{ realm_upper }}
+

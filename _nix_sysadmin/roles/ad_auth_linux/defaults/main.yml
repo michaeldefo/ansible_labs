@@ -1,0 +1,5 @@
+---
+domain: "lab.local"
+ad_admin_user: "Administrateur"
+dns_server_ip: "192.168.56.100"
+
