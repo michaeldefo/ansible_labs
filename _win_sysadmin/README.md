@@ -1,15 +1,9 @@
-<<<<<<< HEAD
-###ansible_labs_win_sysadmin
-
-###Handling my personnal ansible project learning and tools building For Windows administration tasks
-=======
 ### ansible_labs_win_sysadmin
-### Handling my personnal ansible project learning and tools building For Windows administration tasks
->>>>>>> bd0b5d3 (feature: Format README.md file)
 
+### Handling my personal Ansible project for learning and building tools for Windows administration tasks
 # Ansible Automation Windows System Administration Learning Project
 # Version in file _win_sysadmin/VERSION
-This repository contains Ansible playbooks, roles, and configurations for automating Windows System Administration Task.
+This repository contains Ansible playbooks, roles, and configurations for automating Windows System Administration tasks.
 
 ## Structure
 - _win_sysadmin/playbooks/: Main playbooks to execute.
