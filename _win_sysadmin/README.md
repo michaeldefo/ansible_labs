@@ -9,8 +9,8 @@ This repository contains Ansible playbooks, roles, and configurations for automa
 - _win_sysadmin/playbooks/: Main playbooks to execute.
 - _win_sysadmin/roles/: Reusable roles for tasks.
 - _win_sysadmin/inventory/: Inventory files for different environments.
-- _win_sysadmin/group_vars/ and PRJ_NAME/host_vars/: Variable definitions.
-- _win_sysadmin/files/ and PRJ_NAME/templates/: Static files and Jinja2 templates.
+- _win_sysadmin/group_vars/ and _win_sysadmin/host_vars/: Variable definitions.
+- _win_sysadmin/files/ and _win_sysadmin/templates/: Static files and Jinja2 templates.
 
 # Getting Started
 To run a playbook:
