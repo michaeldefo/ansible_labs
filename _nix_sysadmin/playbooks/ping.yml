@@ -1,0 +1,8 @@
+---
+- name: Test de connectivité des serveurs Linux
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: Ping des hôtes Linux
+      ansible.builtin.ping:
