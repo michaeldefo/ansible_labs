@@ -1,0 +1,46 @@
+---
+- name: Récupérer la version de l'OS selon la distribution
+  hosts: all
+  gather_facts: true  # Nécessaire pour accéder à ansible_distribution
+
+  tasks:
+
+    - name: Récupérer version pour Debian/Ubuntu/Mint
+      ansible.builtin.shell: cat /etc/os-release
+      register: os_release_deb
+      when: ansible_distribution in ['Debian', 'Ubuntu', 'Linux Mint']
+
+    - name: Récupérer version pour RedHat/CentOS/Rocky/Alma
+      ansible.builtin.shell: cat /etc/redhat-release
+      register: os_release_rhel
+      when: ansible_distribution in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
+
+    - name: Récupérer version pour Arch/Manjaro
+      ansible.builtin.shell: cat /etc/arch-release
+      register: os_release_arch
+      when: ansible_distribution in ['Archlinux', 'Manjaro']
+
+    - name: Récupérer version pour openSUSE/SUSE
+      ansible.builtin.shell: cat /etc/SuSE-release
+      register: os_release_suse
+      when: ansible_distribution in ['openSUSE', 'SLES']
+
+    - name: Afficher version Debian-like
+      ansible.builtin.debug:
+        var: os_release_deb.stdout_lines
+      when: os_release_deb is defined
+
+    - name: Afficher version RHEL-like
+      ansible.builtin.debug:
+        var: os_release_rhel.stdout_lines
+      when: os_release_rhel is defined
+
+    - name: Afficher version Arch-like
+      ansible.builtin.debug:
+        var: os_release_arch.stdout_lines
+      when: os_release_arch is defined
+
+    - name: Afficher version SUSE-like
+      ansible.builtin.debug:
+        var: os_release_suse.stdout_lines
+      when: os_release_suse is defined
