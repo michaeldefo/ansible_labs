@@ -4,11 +4,12 @@
   gather_facts: false
   become: true
   vars:
+  vars:
     ansible_user: "{{ ad_user }}"
     ansible_password: "{{ ad_password }}"
-    ansible_connection: winrm
-    ansible_winrm_transport: kerberos
-    ansible_winrm_server_cert_validation: ignore
+    ansible_ssh_pass: "{{ ad_password }}"
+    ansible_connection: ssh
+    ansible_become_method: sudo
 
   tasks:
     - name: Collecter les faits système
