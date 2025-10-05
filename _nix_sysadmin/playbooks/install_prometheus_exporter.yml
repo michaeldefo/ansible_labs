@@ -11,10 +11,10 @@
   hosts: all
   become: true
   vars:
-    node_exporter_version: {{version}}                            ############## node_exporter_version: "1.7.0"
-    prometheus_server: {{prometheus_url_server}}              ############## prometheus_server: "http://your.prometheus.server:9090" 
-    node_exporter_port: {{port_number}}                                  ############## node_exporter_port: 9100   
-    node_exporter_user: {{user}}                     ############## node_exporter_user: "node_exporter"  
+    node_exporter_version: "{{ version }}"                           ############## node_exporter_version: "1.7.0"
+    prometheus_server: "{{ prometheus_url_server }}"            ############## prometheus_server: "http://your.prometheus.server:9090" 
+    node_exporter_port: "{{ port_number }}"                                  ############## node_exporter_port: 9100   
+    node_exporter_user: "{{ user }}"                    ############## node_exporter_user: "node_exporter"  
   roles:
     - install_node_exporter
    
