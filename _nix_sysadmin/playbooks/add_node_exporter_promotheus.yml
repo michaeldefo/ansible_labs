@@ -12,6 +12,7 @@
   vars:
      node_exporter_port: "{{ node_exporter_port }}"
      dns_prometheus_server: "{{ server_prometheus }}" 
+     prometheus_server_port: "{{ prometheus_server_port }}"
 
   roles:
     - add_node_exporter_to_promotheus
