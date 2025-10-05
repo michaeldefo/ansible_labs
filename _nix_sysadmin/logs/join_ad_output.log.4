@@ -1,0 +1,30 @@
+ansible-playbook [core 2.14.18]
+  config file = /opt/_nix_sysadmin/ansible.cfg
+  configured module search path = ['/home/ansible/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
+  ansible python module location = /usr/lib/python3.9/site-packages/ansible
+  ansible collection location = /home/ansible/.ansible/collections:/usr/share/ansible/collections
+  executable location = /usr/bin/ansible-playbook
+  python version = 3.9.21 (main, Jun 27 2025, 00:00:00) [GCC 11.5.0 20240719 (Red Hat 11.5.0-5)] (/usr/bin/python3)
+  jinja version = 3.1.2
+  libyaml = True
+Using /opt/_nix_sysadmin/ansible.cfg as config file
+Skipping callback 'default', as we already have a stdout callback.
+Skipping callback 'minimal', as we already have a stdout callback.
+Skipping callback 'oneline', as we already have a stdout callback.
+
+PLAYBOOK: join_ad.yml **********************************************************
+1 plays in playbooks/join_ad.yml
+
+PLAY [Join Linux host to Active Directory] *************************************
+
+TASK [Gathering Facts] *********************************************************
+task path: /opt/_nix_sysadmin/playbooks/join_ad.yml:10
+ok: [srv-obs-lnx]
+
+TASK [join_ad_linux : Installer les paquets requis] ****************************
+task path: /opt/_nix_sysadmin/roles/join_ad_linux/tasks/main.yml:11
+fatal: [srv-obs-lnx]: FAILED! => {"changed": false, "msg": "No package matching 'samba-winbind' is available"}
+
+PLAY RECAP *********************************************************************
+srv-obs-lnx                : ok=1    changed=0    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0   
+

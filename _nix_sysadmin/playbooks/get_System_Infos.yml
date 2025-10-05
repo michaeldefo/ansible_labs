@@ -1,0 +1,32 @@
+---
+- name: Collecte des infos système via AD
+  hosts: all
+  gather_facts: false
+  become: true
+  vars:
+  vars:
+    ansible_user: "{{ ad_user }}"
+    ansible_password: "{{ ad_password }}"
+    ansible_ssh_pass: "{{ ad_password }}"
+    ansible_connection: ssh
+    ansible_become_method: sudo
+
+  tasks:
+    - name: Collecter les faits système
+      setup:
+
+    - name: Afficher la RAM
+      debug:
+        msg: "RAM totale : {{ ansible_memory_mb.real.total }} MB"
+
+    - name: Afficher les infos CPU
+      debug:
+        msg: "CPU(s) : {{ ansible_processor_count }} - Modèle : {{ ansible_processor[1] }}"
+
+    - name: Afficher les infos disque
+      debug:
+        msg: >
+          Disques :
+          {% for disk in ansible_devices %}
+            {{ disk }} - Taille : {{ ansible_devices[disk].size }}
+          {% endfor %}

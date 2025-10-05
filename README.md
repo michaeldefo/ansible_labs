@@ -3,6 +3,7 @@
 
 # Ansible Automation Learning Project
 # Looks For Version in VERSION File
+# version 0.1.0
 This repository contains Ansible playbooks, roles, and configurations for automating infrastructure and application deployments.
 
 ## Structure
