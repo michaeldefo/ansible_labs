@@ -8,8 +8,8 @@
 
 - name: Générer la configuration Prometheus
   #hosts: localhost
-  vars:
-    prometheus_server: " {{ dns_prometheus_server }}"
+  #vars:
+  #  prometheus_server: " {{ dns_prometheus_server }}"
   tasks:
     - name: Générer le fichier prometheus.yml sur le serveur Prometheus
       template:
