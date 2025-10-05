@@ -10,7 +10,8 @@
   hosts: all
   become: true
   vars:
-     node_exporter_port: "{{ node_exporter_port }}" 
+     node_exporter_port: "{{ node_exporter_port }}"
+     dns_prometheus_server: "{{ server_prometheus }}" 
 
   roles:
     - add_node_exporter_to_promotheus

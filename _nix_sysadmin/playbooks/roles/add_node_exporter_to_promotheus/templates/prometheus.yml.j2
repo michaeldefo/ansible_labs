@@ -2,9 +2,14 @@ global:
   scrape_interval: 15s
 
 scrape_configs:
-  - job_name: 'node_exporter'
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:{{ prometheus_server_port }}']
+
+scrape_configs:
+  - job_name: '{{ scrape_job_name }}'
     static_configs:
       - targets:
 {% for host in ansible_play_hosts %}
-          - '{{ host }}:{{ node_exporter_port }}'
+          - '{{ hostvars[host].ansible_host | default(host) }}:{{ node_exporter_port }}'
 {% endfor %}
