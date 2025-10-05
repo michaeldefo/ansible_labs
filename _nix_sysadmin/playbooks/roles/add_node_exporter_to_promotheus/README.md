@@ -5,7 +5,6 @@ Ce rôle permet d'ajouter un node exporter prometheus sur une machine de type *N
 ## Variables 
 - `node_exporter_port`: Port d'écoute pour node exporter
 
-
 ## Exemple d'utilisation
 
 ```yaml
@@ -18,8 +17,7 @@ Ce rôle permet d'ajouter un node exporter prometheus sur une machine de type *N
      node_exporter_port: "{{ node_exporter_port }}" 
 
   roles:
-    - prometheus_config_node_exporter
-
+    - add_node_exporter_to_promotheus
 
 
 # Update Value with your's values

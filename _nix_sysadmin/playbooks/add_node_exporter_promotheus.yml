@@ -13,4 +13,4 @@
      node_exporter_port: "{{ node_exporter_number }}" 
 
   roles:
-    - prometheus_config_node_exporter
+    - add_node_exporter_to_promotheus
