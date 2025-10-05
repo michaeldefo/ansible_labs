@@ -1,0 +1,6 @@
+﻿--- 
+# same for this windows version add usage line on comment
+- name: Ensure NTP is installed
+  package:
+    name: ntp
+    state: present
