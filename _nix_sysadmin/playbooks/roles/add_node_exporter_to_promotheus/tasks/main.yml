@@ -14,4 +14,5 @@
     group: prometheus
     mode: '0644'
   delegate_to: "{{ dns_prometheus_server }}"
-  run_once: true
+  notify: restart prometheus
+  #run_once: true
