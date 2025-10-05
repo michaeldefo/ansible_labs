@@ -7,7 +7,7 @@
 #repos_main: "https://github.com/michaeldefo/ansible_labs.git to commit on global repos"
 
 - name: Générer la configuration Prometheus
-  hosts: localhost
+  #hosts: localhost
   vars:
     prometheus_server: " {{ dns_prometheus_server }}"
   tasks:
