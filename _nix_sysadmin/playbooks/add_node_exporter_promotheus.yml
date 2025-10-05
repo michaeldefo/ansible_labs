@@ -10,7 +10,19 @@
   hosts: all
   become: true
   vars:
-     node_exporter_port: "{{ node_exporter_number }}" 
+     node_exporter_port: "{{ node_exporter_port }}" 
+
+  pre_tasks:
+    - name: Générer la liste des cibles Node Exporter à partir des hôtes du playbook
+      set_fact:
+        node_exporter_targets: >-
+          {{
+            ansible_play_hosts
+            | map('extract', hostvars, ['ansible_host'])
+            | map('regex_replace', '(.*)', '\\1:' ~ node_exporter_port)
+            | list
+          }}
 
   roles:
     - add_node_exporter_to_promotheus
+
