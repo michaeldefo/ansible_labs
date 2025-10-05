@@ -10,5 +10,5 @@ scrape_configs:
     static_configs:
       - targets:
 {% for target in node_exporter_targets %}
-          - '{{ target }}:{{ node_exporter_number }}'
+          - '{{ target }}:{{ node_exporter_port }}'
 {% endfor %}

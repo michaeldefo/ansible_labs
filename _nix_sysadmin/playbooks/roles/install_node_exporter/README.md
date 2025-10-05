@@ -13,7 +13,7 @@ Ce rôle permet d'installer le node exporter prometheus sur une machine de type 
 
 ```yaml
 ---
-# Playbook Ansible pour joindre un hôte Linux à un domaine Active Directory
+# Playbook Ansible pour installer le node exporter prometheus sur une machine de type *NIX
 - name: Deploy Node Exporter on *NIX Hosts
   hosts: all
   become: true
