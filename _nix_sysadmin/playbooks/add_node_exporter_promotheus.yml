@@ -1,0 +1,16 @@
+#---
+# Metadata
+#version: "0.0.1"
+#author: "Michael D <dtmghislain@gmail.com>"
+#comment: "Part of ansible_labs project named nix_sysadmin for automating linux administration tasks"
+#repos_dev: "https://github.com/michaeldefo/ansible_labs/tree/feature/install_node_exporter - branch for DEV"
+#repos_main: "https://github.com/michaeldefo/ansible_labs.git to commit on global repos"
+
+- name: Ajouter Node Exporter à Prometheus
+  hosts: all
+  become: true
+  vars:
+     node_exporter_port: "{{ node_exporter_number }}" 
+
+  roles:
+    - prometheus_config_node_exporter
