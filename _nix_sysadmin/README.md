@@ -10,15 +10,6 @@
 
 This repository contains Ansible playbooks, roles, and configurations to automate common UNIX/Linux system administration tasks. It is designed as a learning project and a toolkit for real-world automation.
 
-## 📌 Suivi des versions
-
-| Version | Description                                                                 | Date        | Auteur      |
-|---------|------------------------------------------------------------------------------|-------------|-------------|
-| 1.0.0   | Initialisation du projet et organisation des fichiers                       | Juillet 2025| Michael D.  |
-| 1.2.0   | Réorganisation des fichiers : déplacement du dossier `roles` vers `playbooks` | Octobre 2025| Michael D.  |
----
----
-
 ## 📁 Project Structure
 
 ```text
@@ -138,6 +129,13 @@ ansible-playbook -i _nix_sysadmin/inventory/hosts.ini _nix_sysadmin/playbooks/ad
 | `add_node_exporter_prometheus` | Add Node Exporter Host to be scrapped by Prometheus Server |
 |*(More Other Roles to come)*||
 ---
+
+## 📌 Suivi des versions
+
+| Version | Description                                                                                         | Date          | Auteur      |
+|---------|-----------------------------------------------------------------------------------------------------|---------------|-------------|
+| 1.0.0   | Initialisation du projet et organisation des fichiers                                               | Juillet 2025  | Michael D.  |
+| 1.2.0   | Réorganisation des fichiers : déplacement du dossier `roles` vers `playbooks`                      | Octobre 2025  | Michael D.  |
 
 ## 🤝 Contributing
 
