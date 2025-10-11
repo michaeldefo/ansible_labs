@@ -1,0 +1,13 @@
+#---
+# Metadata
+#version: "0.0.1"
+#author: "Michael D <dtmghislain@gmail.com>"
+#comment: "Part of ansible_labs project named nix_sysadmin for automating linux administration tasks"
+#repos_dev: "https://github.com/michaeldefo/ansible_labs/tree/feature/install_node_exporter - branch for DEV"
+#repos_main: "https://github.com/michaeldefo/ansible_labs.git to commit on global repos"
+
+- name: Restart Prometheus
+  service:
+    name: prometheus
+    state: restarted
+  delegate_to: "{{ dns_prometheus_server }}"

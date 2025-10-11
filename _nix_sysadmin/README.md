@@ -10,14 +10,12 @@
 
 This repository contains Ansible playbooks, roles, and configurations to automate common UNIX/Linux system administration tasks. It is designed as a learning project and a toolkit for real-world automation.
 
----
-
 ## 📁 Project Structure
 
 ```text
 _nix_sysadmin/
 ├── playbooks/         # Main playbooks to execute
-├── roles/             # Reusable Ansible roles
+├── plabooks/roles/    # Reusable Ansible roles
 ├── inventory/         # Inventory files for different environments
 ├── group_vars/        # Group-level variable definitions
 ├── host_vars/         # Host-specific variable definitions
@@ -86,7 +84,39 @@ ansible-playbook -i _nix_sysadmin/inventory/hosts.ini _nix_sysadmin/playbooks/ad
   --limit auth_host \ #### optional to limit
   -vv | tee logs/ad_auth_output.log
 ```
+### 🔸 Prometheus Node Exporter Installation on linux
 
+**Syntax Check:**
+
+```bash
+ansible-playbook --syntax-check -vv _nix_sysadmin/playbooks/install_prometheus_exporter.yml
+```
+
+**Run Example:**
+
+```bash
+ansible-playbook -i _nix_sysadmin/inventory/hosts.ini _nix_sysadmin/playbooks/install_prometheus_exporter.yml \
+  -e "node_exporter_version="{{ version }}" prometheus_server="{{ prometheus_url_server }}" node_exporter_port="{{ port_number }}" node_exporter_user="{{ user }}" \
+  --limit auth_host \ #### optional to limit
+  -vv | tee logs/ad_auth_output.log
+```
+
+### 🔸 Populate Prometheus config for scrapping nodes 
+
+**Syntax Check:**
+
+```bash
+ansible-playbook --syntax-check -vv _nix_sysadmin/playbooks/add_node_exporter_promotheus.yml
+```
+
+**Run Example:**
+
+```bash
+ansible-playbook -i _nix_sysadmin/inventory/hosts.ini _nix_sysadmin/playbooks/add_node_exporter_promotheus.yml \
+  -e "node_exporter_port="{{ node_exporter_port }}" dns_prometheus_server="{{ server_prometheus }}"   prometheus_server_port="{{ prometheus_server_port }}"" \
+  --limit auth_host \ #### optional to limit
+  -vv | tee logs/ad_auth_output.log
+```
 ---
 
 ## 🧩 Roles Overview
@@ -95,9 +125,17 @@ ansible-playbook -i _nix_sysadmin/inventory/hosts.ini _nix_sysadmin/playbooks/ad
 |-----------|-------------|
 | `join_ad` | Joins a Linux host to an Active Directory domain |
 | `ad_auth` | Configures AD-based authentication on Linux hosts |
-| *(More roles coming soon...)* | |
-
+| `install_node_exporter` | Install Prometheus Node Exporter on Host Linux |
+| `add_node_exporter_prometheus` | Add Node Exporter Host to be scrapped by Prometheus Server |
+|*(More Other Roles to come)*||
 ---
+
+## 📌 Suivi des versions
+
+| Version | Description                                                                                         | Date          | Auteur      |
+|---------|-----------------------------------------------------------------------------------------------------|---------------|-------------|
+| 1.0.0   | Initialisation du projet et organisation des fichiers                                               | Juillet 2025  | Michael D.  |
+| 1.2.0   | Réorganisation des fichiers : déplacement du dossier `roles` vers `playbooks`                      | Octobre 2025  | Michael D.  |
 
 ## 🤝 Contributing
 

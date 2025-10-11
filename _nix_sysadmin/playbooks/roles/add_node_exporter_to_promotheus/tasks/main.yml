@@ -1,0 +1,18 @@
+#---
+# Metadata
+#version: "0.0.1"
+#author: "Michael D <dtmghislain@gmail.com>"
+#comment: "Part of ansible_labs project named nix_sysadmin for automating linux administration tasks"
+#repos_dev: "https://github.com/michaeldefo/ansible_labs/tree/feature/install_node_exporter - branch for DEV"
+#repos_main: "https://github.com/michaeldefo/ansible_labs.git to commit on global repos"
+
+- name: Générer le fichier prometheus.yml sur le serveur Prometheus
+  template:
+    src: prometheus.yml.j2
+    dest: "/etc/prometheus/prometheus.yml"
+    owner: prometheus
+    group: prometheus
+    mode: '0644'
+  delegate_to: "{{ dns_prometheus_server }}"
+  run_once: true
+  notify: Restart Prometheus
