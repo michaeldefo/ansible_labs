@@ -10,10 +10,12 @@
 
 This repository contains Ansible playbooks, roles, and configurations to automate common UNIX/Linux system administration tasks. It is designed as a learning project and a toolkit for real-world automation.
 
-| Version   | Description                                                                 | Date  | Auteur |
-|-----------|-----------------------------------------------------------------------------|       |        |
-| 1.0.0     | Initial Version project intialisation and files organisation | July 2025 | Michael D. |
-| 1.2.0     | Update of project file organization moving roles folder to playbooks folder | October 2025 |
+## 📌 Suivi des versions
+
+| Version | Description                                                                 | Date        | Auteur      |
+|---------|------------------------------------------------------------------------------|-------------|-------------|
+| 1.0.0   | Initialisation du projet et organisation des fichiers                       | Juillet 2025| Michael D.  |
+| 1.2.0   | Réorganisation des fichiers : déplacement du dossier `roles` vers `playbooks` | Octobre 2025| Michael D.  |
 ---
 ---
 
