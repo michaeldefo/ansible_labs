@@ -8,3 +8,13 @@
   description: Deploy K8S Cluster Control Pane playbook
   license: MIT
   min_ansible_version: 2.9
+  platforms:
+    - name: Debian
+      versions:
+        - buster
+        - bullseye
+    - name: EL
+      versions:
+        - 8
+        - 9
+
