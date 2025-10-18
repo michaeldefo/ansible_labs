@@ -211,7 +211,7 @@
    become: yes
 
  - name: Initialize Kubernetes control plane
-   a nsible.builtin.shell: |
+   ansible.builtin.shell: |
     kubeadm init --config=/home/{{ k8s_user }}/kubeadm-config.yaml \
       --upload-certs --node-name=cp | tee /home/{{ k8s_user }}/kubeadm-init.out
    args:
