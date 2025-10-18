@@ -1,12 +1,13 @@
-### ANSIBLE_LABS
-
 ### Handling my personnal ansible project learning and tools building
 
-# Ansible Automation Learning Project
+## Ansible Automation Learning Project
 
 # Looks For Version in VERSION File
 
-# version 1.0.0
+#### With `markdown-include` (Python):
+
+```markdown
+[INCLUDE VERSION]
 
 This repository contains Ansible playbo**o**ks, roles, and configurations for automating infrastructure and application deployments.
 
@@ -62,3 +63,6 @@ To run a playbook:
 ```bash
 ansible-playbook -i PRJ_NAME/inventory/your_inventory PRJ_NAME/playbooks/your_playbook.yml
 
+
+
+[def]: VERSION
