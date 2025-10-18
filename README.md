@@ -4,11 +4,7 @@
 
 # Looks For Version in VERSION File
 
-#### With `markdown-include` (Python):
-
-[INCLUDE ../VERSION]
 {% include_relative VERSION %}
-
 
 # Informations
 
