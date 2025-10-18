@@ -1,0 +1,21 @@
+#---
+# Metadata
+#version: "0.0.1"
+#author: "Michael D <dtmghislain@gmail.com>"
+#comment: "Part of ansible_labs project named nix_sysadmin for automating linux administration tasks"
+#repos_dev: "https://github.com/michaeldefo/ansible_labs/tree/feature/install_k8s_cluster_cp - branch for DEV"
+#repos_main: "https://github.com/michaeldefo/ansible_labs.git to commit on global repos"
+
+
+- name: Deploy K8S Control Plane Node on a Cluster
+  hosts: all
+  become: true
+  vars:
+    kubeadm_user: "{{ k8s_user }}" ### Compte dédie kubernetes
+    url_endpoint_cp: "{{ control_plane_endpoint }}" ### url d'accès endpoint control plane
+    endpoint_port_cp: "{{ cp_port }}"  ### Port d'accès Endpoint CP
+    cilium_networt: "{{ pod_subnet }}" ### sous-réseau cilium des pods
+    kube_version: "{{ kube_version }}" ### Version des modules kubeadm utilisé 
+    k8s_version: "{{ k8s_version }}"   ### version de kubernetes utilisé
+  roles:
+    - install_k8s_cluster_cp

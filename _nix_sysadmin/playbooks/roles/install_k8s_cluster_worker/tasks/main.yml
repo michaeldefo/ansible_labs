@@ -1,0 +1,86 @@
+﻿--- 
+  - name: Create dedicated Kubernetes admin user
+    ansible.builtin.user:
+      name: "{{ k8s_user }}"
+      shell: /bin/bash
+      groups: "{{ 'sudo' if ansible_facts['os_family'] == 'Debian' else 'wheel' }}"
+      append: yes
+      create_home: yes
+
+  - name: Disable swap
+    ansible.builtin.shell: swapoff -a
+
+  - name: Load required kernel modules
+    ansible.builtin.shell: |
+      modprobe overlay
+      modprobe br_netfilter
+
+  - name: Apply Kubernetes sysctl settings
+    ansible.builtin.template:
+      src: kubernetes.conf.j2
+      dest: /etc/sysctl.d/kubernetes.conf
+      mode: '0644'
+
+  - name: Reload sysctl
+    ansible.builtin.shell: sysctl --system
+
+  - name: Install containerd and configure SystemdCgroup (Debian)
+    ansible.builtin.shell: |
+      apt-get update -y
+      apt-get install -y containerd.io
+      sed -i 's/SystemdCgroup = false/SystemdCgroup = true/g' /etc/containerd/config.toml
+      systemctl restart containerd
+    when: ansible_facts['os_family'] == "Debian"
+
+  - name: Install containerd and configure SystemdCgroup (RHEL)
+    ansible.builtin.shell: |
+      dnf install -y containerd.io
+      mkdir -p /etc/containerd
+      containerd config default > /etc/containerd/config.toml
+      sed -i 's/SystemdCgroup = false/SystemdCgroup = true/g' /etc/containerd/config.toml
+      systemctl restart containerd
+    when: ansible_facts['os_family'] == "RedHat"
+
+  - name: Add Kubernetes repo (Debian)
+    ansible.builtin.shell: |
+      curl -fsSL https://pkgs.k8s.io/core:/stable:/{{ kube_version }}/deb/Release.key \
+        | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+      echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/{{ kube_version }}/deb/ /" \
+        | tee /etc/apt/sources.list.d/kubernetes.list
+      apt update -y
+    when: ansible_facts['os_family'] == "Debian"
+
+  - name: Add Kubernetes repo (RHEL)
+    ansible.builtin.shell: |
+      curl -fsSL https://pkgs.k8s.io/core:/stable:/{{ kube_version }}/rpm/Release.key \
+        -o /etc/pki/rpm-gpg/kubernetes-release-key.gpg
+      cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+      [kubernetes]
+      name=Kubernetes
+      baseurl=https://pkgs.k8s.io/core:/stable:/{{ kube_version }}/rpm/
+      enabled=1
+      gpgcheck=1
+      gpgkey=file:///etc/pki/rpm-gpg/kubernetes-release-key.gpg
+      EOF
+      dnf update -y
+    when: ansible_facts['os_family'] == "RedHat"
+
+  - name: Install Kubernetes components
+    ansible.builtin.package:
+      name:
+        - kubelet-{{ kube_version }}
+        - kubeadm-{{ kube_version }}
+        - kubectl-{{ kube_version }}
+      state: present
+
+  - name: Enable kubelet service
+    ansible.builtin.systemd:
+      name: kubelet
+      enabled: yes
+      state: started
+
+  - name: Join the node to the cluster
+    ansible.builtin.shell: "{{ join_command }}"
+    args:
+      creates: /etc/kubernetes/kubelet.conf
+    become_user: "{{ k8s_user }}"

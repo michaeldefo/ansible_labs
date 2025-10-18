@@ -50,7 +50,7 @@ function Initialize-Project {
 
         Get-Directory "inventory"
         Get-Directory "playbooks"
-        Get-Directory "roles\common\tasks"
+        Get-Directory "playbooks\roles"
         Get-Directory "group_vars"
         Get-Directory "host_vars"
         Get-Directory "templates"

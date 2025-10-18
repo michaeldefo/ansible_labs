@@ -1,0 +1,275 @@
+﻿---  
+ - name: Upgrade packages (Debian/Ubuntu)
+   ansible.builtin.shell: |
+     apt update -y 
+     apt upgrade -y
+   when: ansible_facts['os_family'] == "Debian"
+   become: yes
+
+ - name: Upgrade packages (RHEL/CentOS/Rocky)
+   ansible.builtin.shell: |
+     dnf makecache
+     dnf upgrade -y
+   when: ansible_facts['os_family'] == "RedHat"
+   become: yes
+
+ - name: Disable swap for RHEL Based OS
+   ansible.builtin.shell: swappoff -a
+   when: ansible_facts['os_family'] == "RedHat"
+   become: yes
+
+ - name: Disable swap (Debian/Ubuntu)
+   ansible.builtin.shell: swappoff -a
+   when: ansible_facts['os_family'] == "Debian"
+   become: yes
+
+ - name: Load Specifics Needed modules for RHEL Based OS
+   ansible.builtin.shell: |
+     modprobe overlay 
+     modprobe br_netfilter
+   when: ansible_facts['os_family'] == "RedHat"
+   become: yes
+
+ - name: Load Specifics Needed modules (Debian/Ubuntu)
+   ansible.builtin.shell: |
+     modprobe overlay
+     modprobe br_netfilter
+   when: ansible_facts['os_family'] == "Debian"
+   become: yes
+
+ - name: Update kernel networking to allow necessary traffic Deploy Kubernetes sysctl
+   ansible.builtin.template:
+    src: kubernetes.conf.j2
+    dest: /etc/sysctl.d/kubernetes.conf
+    owner: root
+    group: root
+    mode: '0644'
+   become: yes
+
+ - name: Ensure the changes are used by the current kernel Apply sysctl changes
+   ansible.builtin.shell: sysctl --system
+   become: yes
+
+ - name: Install Docker GPG key and repository (Debian/Ubuntu)
+   ansible.builtin.shell: |
+    mkdir -p /etc/apt/keyrings
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
+      | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+      https://download.docker.com/linux/ubuntu \
+      $(lsb_release -cs) stable" \
+      | tee /etc/apt/sources.list.d/docker.list > /dev/null
+   args:
+    creates: /etc/apt/sources.list.d/docker.list
+   when: ansible_facts['os_family'] == "Debian"
+   become: yes
+
+ - name: Install Docker GPG key and repository (RHEL-based)
+   ansible.builtin.shell: |
+    mkdir -p /etc/yum.repos.d
+    curl -fsSL https://download.docker.com/linux/centos/gpg \
+      -o /etc/pki/rpm-gpg/docker.gpg
+
+    cat <<EOF > /etc/yum.repos.d/docker.repo
+    [docker-ce-stable]
+    name=Docker CE Stable - \$basearch
+    baseurl=https://download.docker.com/linux/centos/\$releasever/\$basearch/stable
+    enabled=1
+    gpgcheck=1
+    gpgkey=file:///etc/pki/rpm-gpg/docker.gpg
+    EOF
+   args:
+    creates: /etc/yum.repos.d/docker.repo
+   when: ansible_facts['os_family'] == "RedHat"
+   become: yes
+
+ - name: Download and install Kubernetes signing key (Debian/Ubuntu)
+   ansible.builtin.shell: |
+    apt-get update -y
+    apt-get install containerd.io -y
+    sed-e 's/SystemdCgroup = false/SystemdCgroup = true/g'-i /etc/containerd/config.toml
+    systemctl restart containerd
+   args:
+    creates: /etc/containerd/config.toml
+   when: ansible_facts['os_family'] == "Debian"
+   become: yes
+
+ - name: Install containerd and configure SystemdCgroup (RHEL-based)
+   ansible.builtin.shell: |
+    dnf update -y
+    dnf install -y containerd.io
+    mkdir -p /etc/containerd
+    containerd config default > /etc/containerd/config.toml
+    sed -i 's/SystemdCgroup = false/SystemdCgroup = true/g' /etc/containerd/config.toml
+    systemctl restart containerd
+   args:
+    creates: /etc/containerd/config.toml
+   when: ansible_facts['os_family'] == "RedHat"
+   become: yes
+
+ - name: Download and install Kubernetes signing key (Debian/Ubuntu)
+   ansible.builtin.shell: |
+    curl -fsSL https://pkgs.k8s.io/core:/stable:/{{ k8s_version }}/deb/Release.key \
+      | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+   args:
+    creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+   when: ansible_facts['os_family'] == "Debian"
+   become: yes
+
+ - name: Download and install Kubernetes signing key (RHEL-based)
+   ansible.builtin.shell: |
+    curl -fsSL https://pkgs.k8s.io/core:/stable:/{{ k8s_version }}/rpm/Release.key \
+      -o /etc/pki/rpm-gpg/kubernetes-release-key.gpg
+   args:
+    creates: /etc/pki/rpm-gpg/kubernetes-release-key.gpg
+   when: ansible_facts['os_family'] == "RedHat"
+   become: yes
+
+ - name: Add the appropriate Kubernetes repos to repository (Debian/Ubuntu)
+   ansible.builtin.shell: |
+    echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] \ https://pkgs.k8s.io/core:/stable:/{{ k8s_version }}/deb/ /" \ |  sudo tee /etc/apt/sources.list.d/kubernetes.list
+   args:
+    creates: /etc/apt/sources.list.d/kubernetes.list
+   when: ansible_facts['os_family'] == "Debian"
+   become: yes  
+   
+ - name: Add Kubernetes repo (RHEL/CentOS/Rocky)
+   ansible.builtin.shell: |
+    cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+    [kubernetes]
+    name=Kubernetes
+    baseurl=https://pkgs.k8s.io/core:/stable:/{{ k8s_version }}/rpm/
+    enabled=1
+    gpgcheck=1
+    gpgkey=file:///etc/pki/rpm-gpg/kubernetes-release-key.gpg
+    EOF
+   args:
+    creates: /etc/yum.repos.d/kubernetes.repo
+   when: ansible_facts['os_family'] == "RedHat"
+   become: yes
+
+ - name: Update with the new repos declared (Debian/Ubuntu)
+   ansible.builtin.shell: |
+     apt update -y 
+   when: ansible_facts['os_family'] == "Debian"
+   become: yes
+
+ - name: Update with the new repos declared (RHEL/CentOS/Rocky)
+   ansible.builtin.shell: |
+     dnf update -y
+   when: ansible_facts['os_family'] == "RedHat"
+   become: yes
+
+ - name: Enable bash auto-completion for RHEL Based OS
+   ansible.builtin.yum:
+     present: 
+      - kubeadm={{ kube_version }} 
+      - kubelet={{ kube_version }} 
+      - kubectl={{ kube_version }}
+     state: true
+   when: ansible_facts['os_family'] == "RedHat"
+   become: yes 
+
+ - name: Enable bash auto-completion (Debian/Ubuntu)
+   ansible.builtin.apt:
+     present: 
+      - kubeadm={{ kube_version }} 
+      - kubelet={{ kube_version }} 
+      - kubectl={{ kube_version }}
+     state: true
+     update_cache: yes
+   when: ansible_facts['os_family'] == "Debian"
+   become: yes
+
+
+ - name: Create dedicated Kubernetes admin user (Debian/RHEL)
+   ansible.builtin.user:
+    name: {{ k8s_user }}
+    shell: /bin/bash
+    groups: "{{ 'sudo' if ansible_facts['os_family'] == 'Debian' else 'wheel' }}"
+    append: yes
+    create_home: yes
+   become: yes
+
+ - name: Set up kubeconfig for kubeadmin
+   ansible.builtin.file:
+    path: "/home/{{ k8s_user }}/.kube"
+    state: directory
+    owner: "{{ k8s_user }}"
+    group: "{{ k8s_user }}"
+    mode: '0755'
+   become: yes
+
+ - name: Copy admin.conf to kubeadmin config
+   ansible.builtin.template:
+    src: kube-adm.conf.yaml.j2
+    dest: "/home/{{ k8s_user }}/.kube/config"
+    owner: "{{ k8s_user }}"
+    group: "{{ k8s_user }}"
+    mode: '0644'
+   become: yes
+
+ - name: Initialize Kubernetes control plane
+   a nsible.builtin.shell: |
+    kubeadm init --config=/home/{{ k8s_user }}/kubeadm-config.yaml \
+      --upload-certs --node-name=cp | tee /home/{{ k8s_user }}/kubeadm-init.out
+   args:
+    creates: /home/{{ k8s_user }}/kubeadm-init.out
+   become: yes
+   become_user: "{{ k8s_user }}"
+
+
+ - name: Get list of non-system users
+   ansible.builtin.command: getent passwd
+   register: passwd_entries
+
+ - name: Extract non-root user home directories
+   ansible.builtin.set_fact:
+    kube_users: >-
+      {{
+        passwd_entries.stdout_lines
+        | map('split', ':')
+        | selectattr('2', 'int', '>=', 1000)
+        | selectattr('0', 'ne', 'root')
+        | map('extract', [0,5])
+        | list
+      }}
+
+ - name: Copy kube config to each user
+   ansible.builtin.template:
+    src: kube-adm.conf.yaml.j2
+    dest: "{{ item.1 }}/.kube/config"
+    owner: "{{ item.0 }}"
+    group: "{{ item.0 }}"
+    mode: '0644'
+   loop: "{{ kube_users }}"
+   become: yes
+   become_user: "{{ item.0 }}"
+   when: ansible_facts['os_family'] in ['Debian', 'RedHat']
+
+ - name: Generate Cilium CNI manifest
+   ansible.builtin.template:
+    src: cilium-cni.yaml.j2
+    dest: /home/{{ k8s_user }}/cilium-cni.yaml
+    mode: '0644'
+   become: yes
+
+ - name: Apply Cilium CNI manifest
+   ansible.builtin.shell: kubectl apply -f /home/{{ k8s_user }}/cilium-cni.yaml
+   args:
+    creates: /home/{{ k8s_user }}/cilium-cni.yaml
+   become: yes
+
+ - name: Enable bash auto-completion for RHEL Based OS
+   ansible.builtin.yum:
+     present: bash-completion
+     state: true
+   when: ansible_facts['os_family'] == "RedHat"
+
+ - name: Enable bash auto-completion for RHEL Based OS
+   ansible.builtin.apt:
+     present: bash-completion
+     state: true
+     update_cache: yes
+   when: ansible_facts['os_family'] == "Debian"

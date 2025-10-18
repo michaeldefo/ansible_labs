@@ -1,0 +1,10 @@
+﻿---
+  galaxy_info:
+  version: 0.0.1
+  author: Michael D <dtmghislain@gmail.com>
+  comment: Part of ansible_labs project for automating administration tasks script to generate template role on windows platforms
+  repos_dev: https://github.com/michaeldefo/ansible_labs/tree/feature/install_k8s_cluster_worker - branch for DEV
+  repos_main: https://github.com/michaeldefo/ansible_labs.git to commit on global repos
+  description: Deploy K8S Cluster worker node playbook
+  license: MIT
+  min_ansible_version: 2.9
