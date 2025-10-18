@@ -6,8 +6,9 @@
 
 #### With `markdown-include` (Python):
 
-```markdown
-[INCLUDE VERSION]
+[INCLUDE ../version]
+
+# Informations
 
 This repository contains Ansible playbo**o**ks, roles, and configurations for automating infrastructure and application deployments.
 
