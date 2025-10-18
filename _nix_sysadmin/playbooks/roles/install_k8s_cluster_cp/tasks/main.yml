@@ -161,23 +161,23 @@
    when: ansible_facts['os_family'] == "RedHat"
    become: yes
 
- - name: Enable bash auto-completion for RHEL Based OS
-   ansible.builtin.yum:
+ - name: Install all kubeadm components for RHEL Based OS
+   ansible.builtin.dnf:
      present: 
-      - kubeadm={{ kube_version }} 
-      - kubelet={{ kube_version }} 
-      - kubectl={{ kube_version }}
-     state: true
+      - kubeadm-{{ kube_version }} 
+      - kubelet-{{ kube_version }} 
+      - kubectl-{{ kube_version }}
+     state: present
    when: ansible_facts['os_family'] == "RedHat"
    become: yes 
 
- - name: Enable bash auto-completion (Debian/Ubuntu)
+ - name: Install all kubeadm components (Debian/Ubuntu)
    ansible.builtin.apt:
      present: 
-      - kubeadm={{ kube_version }} 
-      - kubelet={{ kube_version }} 
-      - kubectl={{ kube_version }}
-     state: true
+      - kubeadm-{{ kube_version }} 
+      - kubelet-{{ kube_version }} 
+      - kubectl-{{ kube_version }}
+     state: present
      update_cache: yes
    when: ansible_facts['os_family'] == "Debian"
    become: yes
@@ -270,6 +270,6 @@
  - name: Enable bash auto-completion for RHEL Based OS
    ansible.builtin.apt:
      present: bash-completion
-     state: true
+     state: present
      update_cache: yes
    when: ansible_facts['os_family'] == "Debian"
