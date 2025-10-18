@@ -162,7 +162,7 @@
    become: yes
 
  - name: Install all kubeadm components for RHEL Based OS
-   ansible.builtin.dnf:
+   ansible.builtin.yum:
      present: 
       - kubeadm-{{ kube_version }} 
       - kubelet-{{ kube_version }} 
