@@ -2,7 +2,6 @@
 
 ## Ansible Automation Learning Project
 
-# Looks For Version in VERSION File
 [View VERSION](./VERSION)
 
 # Informations
