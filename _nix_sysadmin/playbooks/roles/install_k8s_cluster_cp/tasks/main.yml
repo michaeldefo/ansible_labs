@@ -163,7 +163,7 @@
 
  - name: Install all kubeadm components for RHEL Based OS
    ansible.builtin.yum:
-     present: 
+     name: 
       - kubeadm-{{ kube_version }} 
       - kubelet-{{ kube_version }} 
       - kubectl-{{ kube_version }}
