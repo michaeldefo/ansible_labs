@@ -6,7 +6,9 @@
 
 #### With `markdown-include` (Python):
 
-[INCLUDE ../version]
+[INCLUDE ../VERSION]
+{% include_relative VERSION %}
+
 
 # Informations
 
