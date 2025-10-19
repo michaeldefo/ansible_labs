@@ -14,12 +14,12 @@
    become: yes
 
  - name: Disable swap for RHEL Based OS
-   ansible.builtin.shell: swappoff -a
+   ansible.builtin.shell: swapoff -a
    when: ansible_facts['os_family'] == "RedHat"
    become: yes
 
  - name: Disable swap (Debian/Ubuntu)
-   ansible.builtin.shell: swappoff -a
+   ansible.builtin.shell: swapoff -a
    when: ansible_facts['os_family'] == "Debian"
    become: yes
 
