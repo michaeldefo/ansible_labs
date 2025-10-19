@@ -298,7 +298,6 @@
    become: yes
    become_user: "{{ k8s_user }}"
    ansible.builtin.shell: |
-    export KUBECONFIG=/dev/null
     kubeadm token create --print-join-command
    register: join_cmd
    changed_when: false
