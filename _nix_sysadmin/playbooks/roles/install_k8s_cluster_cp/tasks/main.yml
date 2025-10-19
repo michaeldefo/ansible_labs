@@ -278,11 +278,11 @@
 
  - name: Enable bash auto-completion for RHEL Based OS
    ansible.builtin.yum:
-     present: bash-completion
+     name: bash-completion
      state: true
    when: ansible_facts['os_family'] == "RedHat"
 
- - name: Enable bash auto-completion for RHEL Based OS
+ - name: Enable bash auto-completion (Debian/Ubuntu)
    ansible.builtin.apt:
      present: bash-completion
      state: present
