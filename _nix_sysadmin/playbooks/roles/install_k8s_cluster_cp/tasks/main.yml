@@ -288,3 +288,25 @@
      state: present
      update_cache: yes
    when: ansible_facts['os_family'] == "Debian"
+
+ - name: Check if kube user has initialized the cluster
+   ansible.builtin.stat:
+    path: "/home/{{ k8s_user }}/.kube/config"
+   register: kube_config_status
+
+ - name: Get kubeadm join command as kube user
+   become: yes
+   become_user: "{{ k8s_user }}"
+   ansible.builtin.shell: |
+    kubeadm token create --print-join-command
+   register: join_cmd
+   changed_when: false
+
+ - name: Save join command to file
+   become: yes
+   ansible.builtin.copy:
+    content: "{{ join_cmd.stdout }}"
+    dest: "/home/{{ k8s_user }}/kubeadm_join.sh"
+    owner: "{{ k8s_user }}"
+    group: "{{ k8s_user }}"
+    mode: '0644'
