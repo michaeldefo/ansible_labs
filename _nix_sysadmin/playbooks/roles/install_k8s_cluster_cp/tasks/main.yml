@@ -162,11 +162,11 @@
    become: yes
 
  - name: Install all kubeadm components for RHEL Based OS
-   ansible.builtin.yum:
+   ansible.builtin.dnf:
      name: 
-      - kubeadm-{{ kube_version }} 
-      - kubelet-{{ kube_version }} 
-      - kubectl-{{ kube_version }}
+      - kubeadm #-{{ kube_version }} 
+      - kubelet #-{{ kube_version }} 
+      - kubectl #-{{ kube_version }}
      state: present
    when: ansible_facts['os_family'] == "RedHat"
    become: yes 
