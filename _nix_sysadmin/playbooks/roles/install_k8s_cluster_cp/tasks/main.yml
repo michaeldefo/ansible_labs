@@ -265,7 +265,7 @@
 
  - name: Generate Cilium CNI manifest
    ansible.builtin.template:
-    src: cilium-cni.yaml.j2
+    src: cilium.conf.yaml.j2
     dest: /home/{{ k8s_user }}/cilium-cni.yaml
     mode: '0644'
    become: yes
