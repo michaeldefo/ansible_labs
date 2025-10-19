@@ -238,6 +238,7 @@
     kube_users: "{{ kube_users_raw.stdout_lines | map('split', ':') | list }}"
 
  - name: Configure kube for each user
+   become: yes
    ansible.builtin.block:
     - name: Ensure .kube directory exists
       ansible.builtin.file:
@@ -258,7 +259,6 @@
    loop: "{{ kube_users }}"
    loop_control:
     label: "{{ item.0 }}"
-   become: yes
 
  - name: Generate Cilium CNI manifest
    ansible.builtin.template:
