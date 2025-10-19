@@ -237,28 +237,31 @@
    ansible.builtin.set_fact:
     kube_users: "{{ kube_users_raw.stdout_lines | map('split', ':') | list }}"
 
- - name: Configure kube for each user
+ - name: Ensure .kube directory exists for each user
    become: yes
-   ansible.builtin.block:
-    - name: Ensure .kube directory exists
-      ansible.builtin.file:
-        path: "/home/{{ item.1 }}/.kube"
-        state: directory
-        owner: "{{ item.0 }}"
-        group: "{{ item.0 }}"
-        mode: '0755'
-
-    - name: Copy kube config
-      ansible.builtin.copy:
-        src: /etc/kubernetes/admin.conf
-        dest: "/home/{{ item.1 }}/.kube/config"
-        owner: "{{ item.0 }}"
-        group: "{{ item.0 }}"
-        mode: '0644'
-        remote_src: yes
+   ansible.builtin.file:
+     path: "/home/{{ item.1 }}/.kube"
+     state: directory
+     owner: "{{ item.0 }}"
+     group: "{{ item.0 }}"
+     mode: '0755'
    loop: "{{ kube_users }}"
    loop_control:
     label: "{{ item.0 }}"
+
+ - name: Copy kube config for each user
+   become: yes
+   ansible.builtin.copy:
+    src: /etc/kubernetes/admin.conf
+    dest: "/home/{{ item.1 }}/.kube/config"
+    owner: "{{ item.0 }}"
+    group: "{{ item.0 }}"
+    mode: '0644'
+    remote_src: yes
+   loop: "{{ kube_users }}"
+   loop_control:
+    label: "{{ item.0 }}"
+
 
  - name: Generate Cilium CNI manifest
    ansible.builtin.template:
