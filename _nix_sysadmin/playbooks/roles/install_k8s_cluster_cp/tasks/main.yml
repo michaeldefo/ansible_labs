@@ -237,7 +237,7 @@
    ansible.builtin.set_fact:
     kube_users: "{{ kube_users_raw.stdout_lines | map('split', ':') | list }}"
 
- - name: Configure .kube for each user
+ - name: Configure kube for each user
    ansible.builtin.block:
     - name: Ensure .kube directory exists
       ansible.builtin.file:
