@@ -252,7 +252,7 @@
  - name: Copy kube config for each user
    become: yes
    ansible.builtin.copy:
-    src: /etc/kubernetes/admin.conf
+    src: /home/{{ k8s_user }}/.kube/config
     dest: "/home/{{ item.1 }}/.kube/config"
     owner: "{{ item.0 }}"
     group: "{{ item.0 }}"
