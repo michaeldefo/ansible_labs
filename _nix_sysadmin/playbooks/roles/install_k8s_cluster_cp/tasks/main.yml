@@ -295,7 +295,7 @@
    register: kube_config_status
 
  - name: Get kubeadm join command as kube user
-   become: yes
+   become: "{{ k8s_user }}"
    ansible.builtin.shell: |
     kubeadm token create --print-join-command
    register: join_cmd
