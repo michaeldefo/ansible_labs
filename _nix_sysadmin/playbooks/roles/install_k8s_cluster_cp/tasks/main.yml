@@ -227,33 +227,38 @@
    become_user: "{{ k8s_user }}"
 
 
- - name: Get list of non-system users
-   ansible.builtin.command: getent passwd
-   register: passwd_entries
+ - name: Get connectable users with home directories
+   ansible.builtin.shell: |
+    awk -F: '($7 !~ /(nologin|false)/) && ($6 ~ /^\/home\//) && ($3 >= 1000) { print $1 ":" $6 }' /etc/passwd
+   register: kube_users_raw
+   changed_when: false
 
- - name: Extract non-root user home directories
+ - name: Set fact with parsed kube users
    ansible.builtin.set_fact:
-    kube_users: >-
-      {{
-        passwd_entries.stdout_lines
-        | map('split', ':')
-        | selectattr('2', 'int', '>=', 1000)
-        | selectattr('0', 'ne', 'root')
-        | map('extract', [0,5])
-        | list
-      }}
+    kube_users: "{{ kube_users_raw.stdout_lines | map('split', ':') | list }}"
 
- - name: Copy kube config to each user
-   ansible.builtin.template:
-    src: kube-adm.conf.yaml.j2
-    dest: "{{ item.1 }}/.kube/config"
-    owner: "{{ item.0 }}"
-    group: "{{ item.0 }}"
-    mode: '0644'
+ - name: Configure .kube for each user
+   ansible.builtin.block:
+    - name: Ensure .kube directory exists
+      ansible.builtin.file:
+        path: "/home/{{ item.1 }}/.kube"
+        state: directory
+        owner: "{{ item.0 }}"
+        group: "{{ item.0 }}"
+        mode: '0755'
+
+    - name: Copy kube config
+      ansible.builtin.copy:
+        src: /etc/kubernetes/admin.conf
+        dest: "/home/{{ item.1 }}/.kube/config"
+        owner: "{{ item.0 }}"
+        group: "{{ item.0 }}"
+        mode: '0644'
+        remote_src: yes
    loop: "{{ kube_users }}"
+   loop_control:
+    label: "{{ item.0 }}"
    become: yes
-   become_user: "{{ item.0 }}"
-   when: ansible_facts['os_family'] in ['Debian', 'RedHat']
 
  - name: Generate Cilium CNI manifest
    ansible.builtin.template:
