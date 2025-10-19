@@ -118,12 +118,18 @@
    become: yes
 
  - name: Download and install Kubernetes signing key (RHEL-based)
-   ansible.builtin.get_url:
-    url: https://pkgs.k8s.io/core:/stable:/{{ k8s_version }}/rpm/repodata/repomd.xml.key
-    dest: /etc/pki/rpm-gpg/kubernetes-release-key.gpg
-    mode: '0644'
+   ansible.builtin.shell: |
+     KEY_PATH="/etc/pki/rpm-gpg/kubernetes-release-key.gpg"
+     KEY_URL="https://pkgs.k8s.io/core:/stable:/{{ k8s_version }}/rpm/repodata/repomd.xml.key"
+     DATE_SUFFIX=$(date +%d%m%y)
+     if [ -f "$KEY_PATH" ]; then
+      echo "🔁 Backup existing key..."
+      cp "$KEY_PATH" "${KEY_PATH}.${DATE_SUFFIX}bak"
+     fi
+     echo "⬇️ Downloading Kubernetes GPG key..."
+     curl -fsSL "$KEY_URL" -o "$KEY_PATH"
    args:
-    creates: /etc/pki/rpm-gpg/kubernetes-release-key.gpg
+    executable: /bin/bash
    when: ansible_facts['os_family'] == "RedHat"
    become: yes
 
