@@ -218,14 +218,13 @@
 
  - name: Initialize Kubernetes control plane
    ansible.builtin.shell: |
-    kubeadm init --config=/home/{{ k8s_user }}/kubeadm-config.yaml \
-      --upload-certs --node-name=cp | tee /home/{{ k8s_user }}/kubeadm-init.out
+    kubeadm init --config=/home/{{ k8s_user }}/kubeadm-config.yaml --upload-certs --node-name=cp | tee /home/{{ k8s_user }}/kubeadm-init.out
    args:
     creates: 
      - /home/{{ k8s_user }}/kubeadm-init.out 
      - /etc/kubernetes/admin.conf
    become: yes
-   #become_user: "{{ k8s_user }}"
+   become_user: "{{ k8s_user }}"
 
  - name: Copy admin.conf to kubeadmin config
    ansible.builtin.template:
