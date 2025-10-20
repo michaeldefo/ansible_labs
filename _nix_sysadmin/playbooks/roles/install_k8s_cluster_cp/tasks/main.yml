@@ -208,13 +208,16 @@
     mode: '0755'
    become: yes
 
-
  - name: Copy Kubernetes Cluster CP file Initialize
+   become: yes
    ansible.builtin.template:
     src: kube-adm.conf.yaml.j2
     dest: /home/{{ k8s_user }}/.kube/kubeadm-config.yaml 
+    owner: "{{ k8s_user }}"
+    group: "{{ k8s_user }}"
     mode: '0644'
-   become: yes
+    force: yes
+
 
  - name: Initialize Kubernetes control plane
    ansible.builtin.shell: |
