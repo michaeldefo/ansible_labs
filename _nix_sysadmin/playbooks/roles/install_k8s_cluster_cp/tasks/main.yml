@@ -227,7 +227,7 @@
      - /home/{{ k8s_user }}/kubeadm-init.out 
      - /etc/kubernetes/admin.conf
    become: yes
-   become_user: "{{ k8s_user }}"
+   #become_user: "{{ k8s_user }}"
 
  - name: Copy admin.conf to kubeadmin config
    become: yes
