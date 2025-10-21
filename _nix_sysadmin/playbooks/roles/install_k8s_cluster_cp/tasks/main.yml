@@ -221,7 +221,7 @@
 
  - name: Initialize Kubernetes control plane
    ansible.builtin.shell: |
-    kubeadm init --config=/home/{{ k8s_user }}/.kube/kubeadm-config.yaml --upload-certs --node-name=cp | tee /home/{{ k8s_user }}/kubeadm-init.out
+    kubeadm init --config=/home/{{ k8s_user }}/.kube/kubeadm-config.yaml --upload-certs --node-name={{ control_plane_endpoint }} | tee /home/{{ k8s_user }}/kubeadm-init.out
    args:
     creates: 
      - /home/{{ k8s_user }}/kubeadm-init.out 
