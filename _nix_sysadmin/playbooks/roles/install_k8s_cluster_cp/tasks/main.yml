@@ -324,7 +324,7 @@
 
  - name: Apply Cilium CNI manifest only if not installed
    become: yes
-   ansible.builtin.shell: kubectl apply -f /home/{{ k8s_user }}/cilium-cni.yaml
+   ansible.builtin.shell: kubectl apply -f /home/{{ k8s_user }}/cilium-cni.yaml --kubeconfig=/home/{{ k8s_user }}/.kube/config
    when: "'cilium' not in cilium_ds_check.stdout"
 
  - name: Enable bash auto-completion for RHEL Based OS
