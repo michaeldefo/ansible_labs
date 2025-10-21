@@ -340,6 +340,10 @@
      update_cache: yes
    when: ansible_facts['os_family'] == "Debian"
 
+ - name: Pause for 2 minutes to allow Cilium and cluster components to settle
+   ansible.builtin.pause:
+    seconds: 120
+
  - name: Check if kube user has initialized the cluster
    ansible.builtin.stat:
     path: "/home/{{ k8s_user }}/.kube/config"
