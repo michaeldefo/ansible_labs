@@ -314,11 +314,18 @@
     mode: '0644'
    become: yes
 
- - name: Apply Cilium CNI manifest
-   ansible.builtin.shell: kubectl apply -f /home/{{ k8s_user }}/cilium-cni.yaml
-   args:
-    creates: /home/{{ k8s_user }}/cilium-cni.yaml
+ - name: Check if Cilium DaemonSet exists
    become: yes
+   ansible.builtin.shell: |
+    kubectl get daemonset -n kube-system cilium --no-headers
+   register: cilium_ds_check
+   failed_when: false
+   changed_when: false
+
+ - name: Apply Cilium CNI manifest only if not installed
+   become: yes
+   ansible.builtin.shell: kubectl apply -f /home/{{ k8s_user }}/cilium-cni.yaml
+   when: "'cilium' not in cilium_ds_check.stdout"
 
  - name: Enable bash auto-completion for RHEL Based OS
    ansible.builtin.yum:
