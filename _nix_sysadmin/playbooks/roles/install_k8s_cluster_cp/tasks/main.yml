@@ -102,6 +102,7 @@
     mkdir -p /etc/containerd
     containerd config default > /etc/containerd/config.toml
     sed -i 's/SystemdCgroup = false/SystemdCgroup = true/g' /etc/containerd/config.toml
+    systemctl enable containerd
     systemctl restart containerd
    args:
     creates: /etc/containerd/config.toml
@@ -189,6 +190,30 @@
    when: ansible_facts['os_family'] == "Debian"
    become: yes
 
+ - name: Enable and start containerd (Debian + RHEL)
+   become: yes
+   ansible.builtin.systemd:
+    name: containerd
+    enabled: true
+    state: started
+
+ - name: Enable and start kubelet (Debian + RHEL)
+   become: yes
+   ansible.builtin.systemd:
+    name: kubelet
+    enabled: true
+    state: started
+
+ - name: Check containerd socket availability
+   become: yes
+   ansible.builtin.stat:
+    path: "{{ containerd_socket_path }}"
+   register: containerd_socket
+
+ - name: Fail if containerd socket is missing
+   ansible.builtin.fail:
+    msg: "Containerd socket not found at {{ containerd_socket_path }}. Container runtime is not ready."
+   when: not containerd_socket.stat.exists
 
  - name: Create dedicated Kubernetes admin user (Debian/RHEL)
    ansible.builtin.user:
