@@ -354,3 +354,17 @@
     owner: "{{ k8s_user }}"
     group: "{{ k8s_user }}"
     mode: '0644'
+
+ - name: Check if Kubernetes cluster is initialized and node is Ready
+   become: yes
+   become_user: "{{ k8s_user }}"
+   ansible.builtin.shell: |
+    export KUBECONFIG=/home/{{ k8s_user }}/.kube/config
+    kubectl get nodes --no-headers | grep -q ' Ready'
+   register: cluster_status
+   ignore_errors: true
+
+ - name: Fail if cluster is not initialized or node is not Ready
+   ansible.builtin.fail:
+    msg: "Kubernetes cluster is not initialized or node is not Ready."
+   when: cluster_status.rc != 0
