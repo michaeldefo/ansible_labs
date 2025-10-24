@@ -73,11 +73,31 @@
         - kubectl-{{ kube_version }}
       state: present
 
-  - name: Enable kubelet service
+   
+  - name: Enable and start containerd (Debian + RHEL)
+    become: yes
     ansible.builtin.systemd:
-      name: kubelet
-      enabled: yes
-      state: started
+     name: containerd
+     enabled: true
+     state: started
+
+  - name: Enable and start kubelet (Debian + RHEL)
+    become: yes
+    ansible.builtin.systemd:
+     name: kubelet
+     enabled: true
+     state: started
+
+  - name: Check containerd socket availability
+    become: yes
+    ansible.builtin.stat:
+     path: "{{ containerd_socket_path }}"
+    register: containerd_socket
+
+  - name: Fail if containerd socket is missing
+    ansible.builtin.fail:
+     msg: "Containerd socket not found at {{ containerd_socket_path }}. Container runtime is not ready."
+    when: not containerd_socket.stat.exists
 
   - name: Join the node to the cluster
     ansible.builtin.shell: "{{ join_command }}"
