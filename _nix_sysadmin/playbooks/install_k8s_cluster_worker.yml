@@ -17,4 +17,4 @@
     join_cluster_cmd: "{{ join_command }}" ### Commande pour joindre le cluter via le control plane node
 
   roles:
-    - install_k8s_cluster_cp
+    - install_k8s_cluster_worker
