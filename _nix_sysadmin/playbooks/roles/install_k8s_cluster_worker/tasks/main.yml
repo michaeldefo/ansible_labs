@@ -38,6 +38,40 @@
   - name: Reload sysctl
     ansible.builtin.shell: sysctl --system
 
+  - name: Install Docker GPG key and repository (Debian/Ubuntu)
+    ansible.builtin.shell: |
+     mkdir -p /etc/apt/keyrings
+     curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
+      | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
+     echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+      https://download.docker.com/linux/ubuntu \
+      $(lsb_release -cs) stable" \
+      | tee /etc/apt/sources.list.d/docker.list > /dev/null
+    args:
+     creates: /etc/apt/sources.list.d/docker.list
+    when: ansible_facts['os_family'] == "Debian"
+    become: yes
+
+  - name: Install Docker GPG key and repository (RHEL-based)
+    ansible.builtin.shell: |
+     mkdir -p /etc/yum.repos.d
+     curl -fsSL https://download.docker.com/linux/centos/gpg \
+      -o /etc/pki/rpm-gpg/docker.gpg
+
+     cat <<EOF > /etc/yum.repos.d/docker.repo
+     [docker-ce-stable]
+     name=Docker CE Stable - \$basearch
+     baseurl=https://download.docker.com/linux/centos/\$releasever/\$basearch/stable
+     enabled=1
+     gpgcheck=1
+     gpgkey=file:///etc/pki/rpm-gpg/docker.gpg
+     EOF
+    args:
+     creates: /etc/yum.repos.d/docker.repo
+    when: ansible_facts['os_family'] == "RedHat"
+    become: yes
+
   - name: Install containerd and configure SystemdCgroup (Debian)
     ansible.builtin.shell: |
       apt-get update -y
