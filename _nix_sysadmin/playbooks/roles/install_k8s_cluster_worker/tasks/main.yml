@@ -89,29 +89,53 @@
       systemctl restart containerd
     when: ansible_facts['os_family'] == "RedHat"
 
-  - name: Add Kubernetes repo (Debian)
+  - name: Download and install Kubernetes signing key (Debian/Ubuntu)
     ansible.builtin.shell: |
-      curl -fsSL https://pkgs.k8s.io/core:/stable:/{{ k8s_version }}/deb/Release.key \
-        | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-      echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/{{ k8s_version }}/deb/ /" \
-        | tee /etc/apt/sources.list.d/kubernetes.list
-      apt update -y
+     curl -fsSL https://pkgs.k8s.io/core:/stable:/{{ k8s_version }}/deb/Release.key \
+      | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+    args:
+     creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
     when: ansible_facts['os_family'] == "Debian"
+    become: yes
 
-  - name: Add Kubernetes repo (RHEL)
+  - name: Download and install Kubernetes signing key (RHEL-based)
     ansible.builtin.shell: |
-      curl -fsSL https://pkgs.k8s.io/core:/stable:/{{ k8s_version }}/rpm/Release.key \
-        -o /etc/pki/rpm-gpg/kubernetes-release-key.gpg
-      cat <<EOF > /etc/yum.repos.d/kubernetes.repo
-      [kubernetes]
-      name=Kubernetes
-      baseurl=https://pkgs.k8s.io/core:/stable:/{{ k8s_version }}/rpm/
-      enabled=1
-      gpgcheck=1
-      gpgkey=file:///etc/pki/rpm-gpg/kubernetes-release-key.gpg
-      EOF
-      dnf update -y
+     KEY_PATH="/etc/pki/rpm-gpg/kubernetes-release-key.gpg"
+     KEY_URL="https://pkgs.k8s.io/core:/stable:/{{ k8s_version }}/rpm/repodata/repomd.xml.key"
+     DATE_SUFFIX=$(date +%d%m%y)
+     if [ -f "$KEY_PATH" ]; then
+      echo "🔁 Backup existing key..."
+      cp "$KEY_PATH" "${KEY_PATH}.${DATE_SUFFIX}bak"
+     fi
+     echo "⬇️ Downloading Kubernetes GPG key..."
+     curl -fsSL "$KEY_URL" -o "$KEY_PATH"
+    args:
+     executable: /bin/bash
     when: ansible_facts['os_family'] == "RedHat"
+    become: yes
+
+  - name: Add the appropriate Kubernetes repos to repository (Debian/Ubuntu)
+    ansible.builtin.shell: |
+     echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] \ https://pkgs.k8s.io/core:/stable:/{{ k8s_version }}/deb/ /" \ |  sudo tee /etc/apt/sources.list.d/kubernetes.list
+    args:
+     creates: /etc/apt/sources.list.d/kubernetes.list
+    when: ansible_facts['os_family'] == "Debian"
+    become: yes  
+   
+  - name: Add Kubernetes repo (RHEL/CentOS/Rocky)
+    ansible.builtin.shell: |
+     cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+     [kubernetes]
+     name=Kubernetes
+     baseurl=https://pkgs.k8s.io/core:/stable:/{{ k8s_version }}/rpm/
+     enabled=1
+     gpgcheck=1
+     gpgkey=file:///etc/pki/rpm-gpg/kubernetes-release-key.gpg
+     EOF
+    args:
+     creates: /etc/yum.repos.d/kubernetes.repo
+    when: ansible_facts['os_family'] == "RedHat"
+    become: yes
 
   - name: Install Kubernetes components
     ansible.builtin.package:
