@@ -84,6 +84,7 @@ ansible-playbook -i _nix_sysadmin/inventory/hosts.ini _nix_sysadmin/playbooks/ad
   --limit auth_host \ #### optional to limit
   -vv | tee logs/ad_auth_output.log
 ```
+
 ### 🔸 Prometheus Node Exporter Installation on linux
 
 **Syntax Check:**
@@ -119,6 +120,44 @@ ansible-playbook -i _nix_sysadmin/inventory/hosts.ini _nix_sysadmin/playbooks/ad
 ```
 ---
 
+### 🔸 Installation of Control Pane node for K8S
+
+**Syntax Check:**
+
+```bash
+ansible-playbook --syntax-check -vv _nix_sysadmin/playbooks/install_k8s_cluster_cp.yml
+```
+
+**Run Example:**
+
+```bash
+ansible-playbook -i _nix_sysadmin/inventory/hosts.ini _nix_sysadmin/playbooks/install_k8s_cluster_cp.yml \
+  -e "url_endpoint_cp="{{ control_plane_endpoint }}" endpoint_port_cp="{{ cp_port }}"   cilium_network="{{ pod_subnet }}"" \
+  kube_version="{{ kube_version }}" k8s_version="{{ k8s_version }}"
+  --limit auth_host \ #### optional to limit
+  -vv | tee logs/ad_auth_output.log
+```
+---
+
+### 🔸 Installation of Worker node for K8S
+
+**Syntax Check:**
+
+```bash
+ansible-playbook --syntax-check -vv _nix_sysadmin/playbooks/install_k8s_cluster_worker.yml
+```
+
+**Run Example:**
+
+```bash
+ansible-playbook -i _nix_sysadmin/inventory/hosts.ini _nix_sysadmin/playbooks/install_k8s_cluster_worker.yml \
+  -e kubeadm_user="{{ k8s_user }}"  kube_version="{{ kube_version }}" k8s_version="{{ k8s_version }}"\
+  join_cluster_cmd="{{ join_command }}"
+  --limit auth_host \ #### optional to limit
+  -vv | tee logs/ad_auth_output.log
+```
+---
+
 ## 🧩 Roles Overview
 
 | Role Name | Description |
@@ -127,6 +166,8 @@ ansible-playbook -i _nix_sysadmin/inventory/hosts.ini _nix_sysadmin/playbooks/ad
 | `ad_auth` | Configures AD-based authentication on Linux hosts |
 | `install_node_exporter` | Install Prometheus Node Exporter on Host Linux |
 | `add_node_exporter_prometheus` | Add Node Exporter Host to be scrapped by Prometheus Server |
+| `install_k8s_cluster_cp` | Install a K8S Control Plane Cluster |
+| `install_k8s_cluster_worker` | Install a K8S Worker Node |
 |*(More Other Roles to come)*||
 ---
 
@@ -136,6 +177,7 @@ ansible-playbook -i _nix_sysadmin/inventory/hosts.ini _nix_sysadmin/playbooks/ad
 |---------|-----------------------------------------------------------------------------------------------------|---------------|-------------|
 | 1.0.0   | Initialisation du projet et organisation des fichiers                                               | Juillet 2025  | Michael D.  |
 | 1.2.0   | Réorganisation des fichiers : déplacement du dossier `roles` vers `playbooks`                      | Octobre 2025  | Michael D.  |
+| 1.3.0   | Ajout des `roles` et `playbooks` pour l'installation d'un control pane et de node worker K8S                     | Octobre 2025  | Michael D.  |
 
 ## 🤝 Contributing
 
