@@ -177,7 +177,7 @@ ansible-playbook -i _nix_sysadmin/inventory/hosts.ini _nix_sysadmin/playbooks/in
 |---------|-----------------------------------------------------------------------------------------------------|---------------|-------------|
 | 1.0.0   | Initialisation du projet et organisation des fichiers                                               | Juillet 2025  | Michael D.  |
 | 1.2.0   | Réorganisation des fichiers : déplacement du dossier `roles` vers `playbooks`                      | Octobre 2025  | Michael D.  |
-| 1.3.0   | Ajout des `roles` et `playbooks` pour l'installation d'un control pane et de node worker K8S                     | Octobre 2025  | Michael D.  |
+| 1.3.0   | Ajout des `roles` et `playbooks` pour l'installation d'un control pane et de node worker K8S                     | Novembre 2025  | Michael D.  |
 
 ## 🤝 Contributing
 
