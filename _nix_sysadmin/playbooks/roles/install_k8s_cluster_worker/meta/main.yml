@@ -1,0 +1,18 @@
+﻿galaxy_info:
+  author: Michael D <dtmghislain@gmail.com>
+  description: Deploy K8S Cluster worker playbook
+  license: MIT
+  min_ansible_version: 2.9
+  platforms:
+    - name: Debian
+      versions:
+        - buster
+        - bullseye
+    - name: EL
+      versions:
+        - 8
+        - 9
+  version: 0.0.1
+  comment: Part of ansible_labs project for automating administration tasks script to generate template role on windows platforms
+  repos_dev: https://github.com/michaeldefo/ansible_labs/tree/feature/Install_K8S_Cluster
+  repos_main: https://github.com/michaeldefo/ansible_labs.git

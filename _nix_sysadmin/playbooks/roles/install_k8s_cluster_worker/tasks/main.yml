@@ -1,0 +1,178 @@
+﻿--- 
+  - name: Upgrade packages (Debian/Ubuntu)
+    ansible.builtin.shell: |
+     apt update -y 
+     apt upgrade -y
+    when: ansible_facts['os_family'] == "Debian"
+    become: yes
+
+  - name: Upgrade packages (RHEL/CentOS/Rocky)
+    ansible.builtin.shell: |
+     dnf makecache
+     dnf upgrade -y
+    when: ansible_facts['os_family'] == "RedHat"
+    become: yes
+  
+  - name: Create dedicated Kubernetes admin user
+    ansible.builtin.user:
+      name: "{{ k8s_user }}"
+      shell: /bin/bash
+      groups: "{{ 'sudo' if ansible_facts['os_family'] == 'Debian' else 'wheel' }}"
+      append: yes
+      create_home: yes
+
+  - name: Disable swap
+    ansible.builtin.shell: swapoff -a
+
+  - name: Load required kernel modules
+    ansible.builtin.shell: |
+      modprobe overlay
+      modprobe br_netfilter
+
+  - name: Apply Kubernetes sysctl settings
+    ansible.builtin.template:
+      src: kubernetes.conf.j2
+      dest: /etc/sysctl.d/kubernetes.conf
+      mode: '0644'
+
+  - name: Reload sysctl
+    ansible.builtin.shell: sysctl --system
+
+  - name: Install Docker GPG key and repository (Debian/Ubuntu)
+    ansible.builtin.shell: |
+     mkdir -p /etc/apt/keyrings
+     curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
+      | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
+     echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+      https://download.docker.com/linux/ubuntu \
+      $(lsb_release -cs) stable" \
+      | tee /etc/apt/sources.list.d/docker.list > /dev/null
+    args:
+     creates: /etc/apt/sources.list.d/docker.list
+    when: ansible_facts['os_family'] == "Debian"
+    become: yes
+
+  - name: Install Docker GPG key and repository (RHEL-based)
+    ansible.builtin.shell: |
+     mkdir -p /etc/yum.repos.d
+     curl -fsSL https://download.docker.com/linux/centos/gpg \
+      -o /etc/pki/rpm-gpg/docker.gpg
+
+     cat <<EOF > /etc/yum.repos.d/docker.repo
+     [docker-ce-stable]
+     name=Docker CE Stable - \$basearch
+     baseurl=https://download.docker.com/linux/centos/\$releasever/\$basearch/stable
+     enabled=1
+     gpgcheck=1
+     gpgkey=file:///etc/pki/rpm-gpg/docker.gpg
+     EOF
+    args:
+     creates: /etc/yum.repos.d/docker.repo
+    when: ansible_facts['os_family'] == "RedHat"
+    become: yes
+
+  - name: Install containerd and configure SystemdCgroup (Debian)
+    ansible.builtin.shell: |
+      apt-get update -y
+      apt-get install -y containerd.io
+      sed -i 's/SystemdCgroup = false/SystemdCgroup = true/g' /etc/containerd/config.toml
+      systemctl restart containerd
+    when: ansible_facts['os_family'] == "Debian"
+
+  - name: Install containerd and configure SystemdCgroup (RHEL)
+    ansible.builtin.shell: |
+      dnf install -y containerd.io
+      mkdir -p /etc/containerd
+      containerd config default > /etc/containerd/config.toml
+      sed -i 's/SystemdCgroup = false/SystemdCgroup = true/g' /etc/containerd/config.toml
+      systemctl restart containerd
+    when: ansible_facts['os_family'] == "RedHat"
+
+  - name: Download and install Kubernetes signing key (Debian/Ubuntu)
+    ansible.builtin.shell: |
+     curl -fsSL https://pkgs.k8s.io/core:/stable:/{{ k8s_version }}/deb/Release.key \
+      | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+    args:
+     creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+    when: ansible_facts['os_family'] == "Debian"
+    become: yes
+
+  - name: Download and install Kubernetes signing key (RHEL-based)
+    ansible.builtin.shell: |
+     KEY_PATH="/etc/pki/rpm-gpg/kubernetes-release-key.gpg"
+     KEY_URL="https://pkgs.k8s.io/core:/stable:/{{ k8s_version }}/rpm/repodata/repomd.xml.key"
+     DATE_SUFFIX=$(date +%d%m%y)
+     if [ -f "$KEY_PATH" ]; then
+      echo "🔁 Backup existing key..."
+      cp "$KEY_PATH" "${KEY_PATH}.${DATE_SUFFIX}bak"
+     fi
+     echo "⬇️ Downloading Kubernetes GPG key..."
+     curl -fsSL "$KEY_URL" -o "$KEY_PATH"
+    args:
+     executable: /bin/bash
+    when: ansible_facts['os_family'] == "RedHat"
+    become: yes
+
+  - name: Add the appropriate Kubernetes repos to repository (Debian/Ubuntu)
+    ansible.builtin.shell: |
+     echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] \ https://pkgs.k8s.io/core:/stable:/{{ k8s_version }}/deb/ /" \ |  sudo tee /etc/apt/sources.list.d/kubernetes.list
+    args:
+     creates: /etc/apt/sources.list.d/kubernetes.list
+    when: ansible_facts['os_family'] == "Debian"
+    become: yes  
+   
+  - name: Add Kubernetes repo (RHEL/CentOS/Rocky)
+    ansible.builtin.shell: |
+     cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+     [kubernetes]
+     name=Kubernetes
+     baseurl=https://pkgs.k8s.io/core:/stable:/{{ k8s_version }}/rpm/
+     enabled=1
+     gpgcheck=1
+     gpgkey=file:///etc/pki/rpm-gpg/kubernetes-release-key.gpg
+     EOF
+    args:
+     creates: /etc/yum.repos.d/kubernetes.repo
+    when: ansible_facts['os_family'] == "RedHat"
+    become: yes
+
+  - name: Install Kubernetes components
+    ansible.builtin.package:
+      name:
+        - kubelet-{{ kube_version }}
+        - kubeadm-{{ kube_version }}
+        - kubectl-{{ kube_version }}
+      state: present
+
+   
+  - name: Enable and start containerd (Debian + RHEL)
+    become: yes
+    ansible.builtin.systemd:
+     name: containerd
+     enabled: true
+     state: started
+
+  - name: Enable and start kubelet (Debian + RHEL)
+    become: yes
+    ansible.builtin.systemd:
+     name: kubelet
+     enabled: true
+     state: started
+
+  - name: Check containerd socket availability
+    become: yes
+    ansible.builtin.stat:
+     path: "{{ containerd_socket_path }}"
+    register: containerd_socket
+
+  - name: Fail if containerd socket is missing
+    ansible.builtin.fail:
+     msg: "Containerd socket not found at {{ containerd_socket_path }}. Container runtime is not ready."
+    when: not containerd_socket.stat.exists
+
+  - name: Join the node to the cluster
+    ansible.builtin.shell: "{{ join_command }}"
+    args:
+      creates: /etc/kubernetes/kubelet.conf
+    become: yes

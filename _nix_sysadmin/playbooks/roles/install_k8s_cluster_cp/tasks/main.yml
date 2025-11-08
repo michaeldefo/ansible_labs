@@ -1,0 +1,381 @@
+﻿---  
+ - name: Upgrade packages (Debian/Ubuntu)
+   ansible.builtin.shell: |
+     apt update -y 
+     apt upgrade -y
+   when: ansible_facts['os_family'] == "Debian"
+   become: yes
+
+ - name: Upgrade packages (RHEL/CentOS/Rocky)
+   ansible.builtin.shell: |
+     dnf makecache
+     dnf upgrade -y
+   when: ansible_facts['os_family'] == "RedHat"
+   become: yes
+
+ - name: Disable swap for RHEL Based OS
+   ansible.builtin.shell: swapoff -a
+   when: ansible_facts['os_family'] == "RedHat"
+   become: yes
+
+ - name: Disable swap (Debian/Ubuntu)
+   ansible.builtin.shell: swapoff -a
+   when: ansible_facts['os_family'] == "Debian"
+   become: yes
+
+ - name: Load Specifics Needed modules for RHEL Based OS
+   ansible.builtin.shell: |
+     modprobe overlay 
+     modprobe br_netfilter
+   when: ansible_facts['os_family'] == "RedHat"
+   become: yes
+
+ - name: Load Specifics Needed modules (Debian/Ubuntu)
+   ansible.builtin.shell: |
+     modprobe overlay
+     modprobe br_netfilter
+   when: ansible_facts['os_family'] == "Debian"
+   become: yes
+
+ - name: Update kernel networking to allow necessary traffic Deploy Kubernetes sysctl
+   ansible.builtin.template:
+    src: kubernetes.conf.j2
+    dest: /etc/sysctl.d/kubernetes.conf
+    owner: root
+    group: root
+    mode: '0644'
+   become: yes
+
+ - name: Ensure the changes are used by the current kernel Apply sysctl changes
+   ansible.builtin.shell: sysctl --system
+   become: yes
+
+ - name: Install Docker GPG key and repository (Debian/Ubuntu)
+   ansible.builtin.shell: |
+    mkdir -p /etc/apt/keyrings
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
+      | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+      https://download.docker.com/linux/ubuntu \
+      $(lsb_release -cs) stable" \
+      | tee /etc/apt/sources.list.d/docker.list > /dev/null
+   args:
+    creates: /etc/apt/sources.list.d/docker.list
+   when: ansible_facts['os_family'] == "Debian"
+   become: yes
+
+ - name: Install Docker GPG key and repository (RHEL-based)
+   ansible.builtin.shell: |
+    mkdir -p /etc/yum.repos.d
+    curl -fsSL https://download.docker.com/linux/centos/gpg \
+      -o /etc/pki/rpm-gpg/docker.gpg
+
+    cat <<EOF > /etc/yum.repos.d/docker.repo
+    [docker-ce-stable]
+    name=Docker CE Stable - \$basearch
+    baseurl=https://download.docker.com/linux/centos/\$releasever/\$basearch/stable
+    enabled=1
+    gpgcheck=1
+    gpgkey=file:///etc/pki/rpm-gpg/docker.gpg
+    EOF
+   args:
+    creates: /etc/yum.repos.d/docker.repo
+   when: ansible_facts['os_family'] == "RedHat"
+   become: yes
+
+ - name: Download and install Kubernetes signing key (Debian/Ubuntu)
+   ansible.builtin.shell: |
+    apt-get update -y
+    apt-get install containerd.io -y
+    sed-e 's/SystemdCgroup = false/SystemdCgroup = true/g'-i /etc/containerd/config.toml
+    systemctl restart containerd
+   args:
+    creates: /etc/containerd/config.toml
+   when: ansible_facts['os_family'] == "Debian"
+   become: yes
+
+ - name: Install containerd and configure SystemdCgroup (RHEL-based)
+   ansible.builtin.shell: |
+    dnf update -y
+    dnf install -y containerd.io
+    mkdir -p /etc/containerd
+    containerd config default > /etc/containerd/config.toml
+    sed -i 's/SystemdCgroup = false/SystemdCgroup = true/g' /etc/containerd/config.toml
+    systemctl enable containerd
+    systemctl restart containerd
+   args:
+    creates: /etc/containerd/config.toml
+   when: ansible_facts['os_family'] == "RedHat"
+   become: yes
+
+ - name: Download and install Kubernetes signing key (Debian/Ubuntu)
+   ansible.builtin.shell: |
+    curl -fsSL https://pkgs.k8s.io/core:/stable:/{{ k8s_version }}/deb/Release.key \
+      | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+   args:
+    creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+   when: ansible_facts['os_family'] == "Debian"
+   become: yes
+
+ - name: Download and install Kubernetes signing key (RHEL-based)
+   ansible.builtin.shell: |
+     KEY_PATH="/etc/pki/rpm-gpg/kubernetes-release-key.gpg"
+     KEY_URL="https://pkgs.k8s.io/core:/stable:/{{ k8s_version }}/rpm/repodata/repomd.xml.key"
+     DATE_SUFFIX=$(date +%d%m%y)
+     if [ -f "$KEY_PATH" ]; then
+      echo "🔁 Backup existing key..."
+      cp "$KEY_PATH" "${KEY_PATH}.${DATE_SUFFIX}bak"
+     fi
+     echo "⬇️ Downloading Kubernetes GPG key..."
+     curl -fsSL "$KEY_URL" -o "$KEY_PATH"
+   args:
+    executable: /bin/bash
+   when: ansible_facts['os_family'] == "RedHat"
+   become: yes
+
+ - name: Add the appropriate Kubernetes repos to repository (Debian/Ubuntu)
+   ansible.builtin.shell: |
+    echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] \ https://pkgs.k8s.io/core:/stable:/{{ k8s_version }}/deb/ /" \ |  sudo tee /etc/apt/sources.list.d/kubernetes.list
+   args:
+    creates: /etc/apt/sources.list.d/kubernetes.list
+   when: ansible_facts['os_family'] == "Debian"
+   become: yes  
+   
+ - name: Add Kubernetes repo (RHEL/CentOS/Rocky)
+   ansible.builtin.shell: |
+    cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+    [kubernetes]
+    name=Kubernetes
+    baseurl=https://pkgs.k8s.io/core:/stable:/{{ k8s_version }}/rpm/
+    enabled=1
+    gpgcheck=1
+    gpgkey=file:///etc/pki/rpm-gpg/kubernetes-release-key.gpg
+    EOF
+   args:
+    creates: /etc/yum.repos.d/kubernetes.repo
+   when: ansible_facts['os_family'] == "RedHat"
+   become: yes
+
+ - name: Update with the new repos declared (Debian/Ubuntu)
+   ansible.builtin.shell: |
+     apt update -y 
+   when: ansible_facts['os_family'] == "Debian"
+   become: yes
+
+ - name: Update with the new repos declared (RHEL/CentOS/Rocky)
+   ansible.builtin.shell: |
+     dnf update -y
+   when: ansible_facts['os_family'] == "RedHat"
+   become: yes
+
+ - name: Install all kubeadm components for RHEL Based OS
+   ansible.builtin.dnf:
+     name: 
+      - kubeadm-{{ kube_version }} 
+      - kubelet-{{ kube_version }} 
+      - kubectl-{{ kube_version }}
+     state: present
+   when: ansible_facts['os_family'] == "RedHat"
+   become: yes 
+
+ - name: Install all kubeadm components (Debian/Ubuntu)
+   ansible.builtin.apt:
+     present: 
+      - kubeadm-{{ kube_version }} 
+      - kubelet-{{ kube_version }} 
+      - kubectl-{{ kube_version }}
+     state: present
+     update_cache: yes
+   when: ansible_facts['os_family'] == "Debian"
+   become: yes
+
+ - name: Enable and start containerd (Debian + RHEL)
+   become: yes
+   ansible.builtin.systemd:
+    name: containerd
+    enabled: true
+    state: started
+
+ - name: Enable and start kubelet (Debian + RHEL)
+   become: yes
+   ansible.builtin.systemd:
+    name: kubelet
+    enabled: true
+    state: started
+
+ - name: Check containerd socket availability
+   become: yes
+   ansible.builtin.stat:
+    path: "{{ containerd_socket_path }}"
+   register: containerd_socket
+
+ - name: Fail if containerd socket is missing
+   ansible.builtin.fail:
+    msg: "Containerd socket not found at {{ containerd_socket_path }}. Container runtime is not ready."
+   when: not containerd_socket.stat.exists
+
+ - name: Create dedicated Kubernetes admin user (Debian/RHEL)
+   ansible.builtin.user:
+    name: "{{ k8s_user }}"
+    shell: /bin/bash
+    groups: "{{ 'sudo' if ansible_facts['os_family'] == 'Debian' else 'wheel' }}"
+    append: yes
+    create_home: yes
+   become: yes
+
+ - name: Set up kubeconfig for kubeadmin
+   ansible.builtin.file:
+    path: "/home/{{ k8s_user }}/.kube"
+    state: directory
+    owner: "{{ k8s_user }}"
+    group: "{{ k8s_user }}"
+    mode: '0755'
+   become: yes
+
+ - name: Copy Kubernetes Cluster CP file Initialize
+   become: yes
+   ansible.builtin.template:
+    src: kube-adm.conf.yaml.j2
+    dest: /home/{{ k8s_user }}/.kube/kubeadm-config.yaml 
+    owner: "{{ k8s_user }}"
+    group: "{{ k8s_user }}"
+    mode: '0644'
+    force: yes
+
+
+ - name: Initialize Kubernetes control plane
+   ansible.builtin.shell: |
+    kubeadm init --config=/home/{{ k8s_user }}/.kube/kubeadm-config.yaml --upload-certs --node-name={{ control_plane_endpoint }} | tee /home/{{ k8s_user }}/kubeadm-init.out
+   args:
+    creates: 
+     - /home/{{ k8s_user }}/kubeadm-init.out 
+     - /etc/kubernetes/admin.conf
+   become: yes
+   #become_user: "{{ k8s_user }}"
+
+ - name: Copy admin.conf to kubeadmin config
+   become: yes
+   ansible.builtin.copy:
+    src: /etc/kubernetes/admin.conf
+    dest: "/home/{{ k8s_user }}/.kube/config"
+    owner: "{{ k8s_user }}"
+    group: "{{ k8s_user }}"
+    mode: '0644'
+    remote_src: yes
+
+ - name: Ensure kubeconfig is only readable by kubeadm
+   become: yes
+   ansible.builtin.file:
+    path: "/home/{{ k8s_user }}/.kube/config"
+    mode: '0600'
+
+ - name: Get connectable users with home directories
+   ansible.builtin.shell: |
+    awk -F: '($7 !~ /(nologin|false)/) && ($6 ~ /^\/home\//) && ($3 >= 1000) { print $1 ":" $6 }' /etc/passwd
+   register: kube_users_raw
+   changed_when: false
+
+ - name: Set fact with parsed kube users
+   ansible.builtin.set_fact:
+    kube_users: "{{ kube_users_raw.stdout_lines | map('split', ':') | list }}"
+
+ - name: Ensure .kube directory exists for each user
+   become: yes
+   ansible.builtin.file:
+     path: "/home/{{ item.1 }}/.kube"
+     state: directory
+     owner: "{{ item.0 }}"
+     group: "{{ item.0 }}"
+     mode: '0755'
+   loop: "{{ kube_users }}"
+   loop_control:
+    label: "{{ item.0 }}"
+
+ - name: Copy kube config for each user
+   become: yes
+   ansible.builtin.copy:
+    #src: /home/{{ k8s_user }}/.kube/config
+    src: /etc/kubernetes/admin.conf
+    dest: "/home/{{ item.1 }}/.kube/config"
+    owner: "{{ item.0 }}"
+    group: "{{ item.0 }}"
+    mode: '0600'
+    remote_src: yes
+   loop: "{{ kube_users }}"
+   loop_control:
+    label: "{{ item.0 }}"
+
+
+ - name: Generate Cilium CNI manifest
+   ansible.builtin.template:
+    src: cilium.conf.yaml.j2
+    dest: /home/{{ k8s_user }}/cilium-cni.yaml
+    mode: '0644'
+   become: yes
+
+ - name: Check if Cilium DaemonSet exists
+   become: yes
+   ansible.builtin.shell: |
+    kubectl get daemonset -n kube-system cilium --no-headers
+   register: cilium_ds_check
+   failed_when: false
+   changed_when: false
+
+ - name: Apply Cilium CNI manifest only if not installed
+   become: yes
+   ansible.builtin.shell: kubectl apply -f /home/{{ k8s_user }}/cilium-cni.yaml --kubeconfig=/home/{{ k8s_user }}/.kube/config
+   when: "'cilium' not in cilium_ds_check.stdout"
+
+ - name: Enable bash auto-completion for RHEL Based OS
+   ansible.builtin.yum:
+     name: bash-completion
+     state: present
+   when: ansible_facts['os_family'] == "RedHat"
+
+ - name: Enable bash auto-completion (Debian/Ubuntu)
+   ansible.builtin.apt:
+     present: bash-completion
+     state: present
+     update_cache: yes
+   when: ansible_facts['os_family'] == "Debian"
+
+ - name: Pause for 2 minutes to allow Cilium and cluster components to settle
+   ansible.builtin.pause:
+    seconds: 120
+
+ - name: Check if kube user has initialized the cluster
+   ansible.builtin.stat:
+    path: "/home/{{ k8s_user }}/.kube/config"
+   register: kube_config_status
+
+ - name: Get kubeadm join command as kube user
+   become: yes
+   become_user: "{{ k8s_user }}"
+   ansible.builtin.shell: |
+    kubeadm token create --print-join-command
+   register: join_cmd
+   changed_when: false
+
+ - name: Save join command to file
+   become: yes
+   ansible.builtin.copy:
+    content: "{{ join_cmd.stdout }}"
+    dest: "/home/{{ k8s_user }}/kubeadm_join.sh"
+    owner: "{{ k8s_user }}"
+    group: "{{ k8s_user }}"
+    mode: '0644'
+
+ - name: Check if Kubernetes cluster is initialized and node is Ready
+   become: yes
+   become_user: "{{ k8s_user }}"
+   ansible.builtin.shell: |
+    export KUBECONFIG=/home/{{ k8s_user }}/.kube/config
+    kubectl get nodes --no-headers | grep -q ' Ready'
+   register: cluster_status
+   ignore_errors: true
+
+ - name: Fail if cluster is not initialized or node is not Ready
+   ansible.builtin.fail:
+    msg: "Kubernetes cluster is not initialized or node is not Ready."
+   when: cluster_status.rc != 0

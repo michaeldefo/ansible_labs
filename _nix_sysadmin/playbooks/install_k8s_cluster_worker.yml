@@ -1,0 +1,20 @@
+#---
+# Metadata
+#version: "0.0.1"
+#author: "Michael D <dtmghislain@gmail.com>"
+#comment: "Part of ansible_labs project named nix_sysadmin for automating linux administration tasks"
+#repos_dev: "https://github.com/michaeldefo/ansible_labs/tree/feature/install_k8s_cluster_worker - branch for DEV"
+#repos_main: "https://github.com/michaeldefo/ansible_labs.git to commit on global repos"
+
+
+- name: Deploy K8S Control Plane Node on a worker
+  hosts: all
+  become: true
+  vars:
+    kubeadm_user: "{{ k8s_user }}" ### Compte dédie kubernetes
+    kube_version: "{{ kube_version }}" ### Version des modules kubeadm utilisé 
+    k8s_version: "{{ k8s_version }}"   ### version de kubernetes utilisé
+    join_cluster_cmd: "{{ join_command }}" ### Commande pour joindre le cluter via le control plane node
+
+  roles:
+    - install_k8s_cluster_worker

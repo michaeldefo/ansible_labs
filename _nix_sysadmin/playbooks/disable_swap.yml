@@ -1,0 +1,37 @@
+---
+- name: Disable swap permanently
+  hosts: all
+  become: true
+  tasks:
+
+    - name: Turn off swap immediately
+      command: swapoff -a
+
+    - name: Remove swap entry from /etc/fstab
+      replace:
+        path: /etc/fstab
+        regexp: '^([^#].*\s+swap\s+.*)$'
+        replace: '# \1'
+      notify: Update fstab
+
+    - name: Delete swap file if it exists
+      file:
+        path: /swapfile
+        state: absent
+
+    - name: Ensure swap is disabled after reboot
+      shell: |
+        swapon --show
+      register: swap_status
+      changed_when: false
+
+    - name: Assert swap is disabled
+      assert:
+        that:
+          - swap_status.stdout == ""
+        fail_msg: "Swap is still active!"
+        success_msg: "Swap is fully disabled."
+
+  handlers:
+    - name: Update fstab
+      command: mount -a
