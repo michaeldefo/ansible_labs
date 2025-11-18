@@ -1,0 +1,30 @@
+#---
+# Metadata
+#version: "0.0.1"
+#author: "Michael D <dtmghislain@gmail.com>"
+#comment: "Part of ansible_labs project named nix_sysadmin for automating linux administration tasks"
+#repos_dev: https://github.com/michaeldefo/ansible_labs/tree/feature/Install_CICD_Tools- branch for DEV
+#repos_main: https://github.com/michaeldefo/ansible_labs.git to commit on global repos
+#description: Deploy CICD Tools (Jenkins, Gitea, Sonar)
+
+- name: Deploy Gitea OnPrem Server or VM
+  hosts: all
+  become: true
+  vars:
+    gitea_version: "{{ gitea_version }}"     ############ Gitea version to be provide default "1.22.0"
+    gitea_user: "{{ gitea_user }}"                 ############ Gitea user to be provide default "gitea" 
+    gitea_home: "{{ gitea_home }}"              ############ Gitea working dir to be provide default "/var/lib/gitea"
+    gitea_bin: "{{ gitea_bin }}"              ############ Gitea bin dir to be provide default "/usr/local/bin/gitea"
+    gitea_config: "{{ gitea_config }}" ############ Gitea config dir to be provide default "/etc/gitea"
+    gitea_port: "{{ gitea_port }}" ############ Gitea port to be provide default 3000
+    gitea_dns: "{{ gitea_dns }}" ############ Gitea port to be provide default gitea.lab.local
+
+# External PostgreSQL settings
+    gitea_pgsql_host: "{{ gitea_pgsql_host }}" ############ Gitea  db host to be provide default "db.example.com"
+    gitea_pgsql_port: "{{ gitea_pgsql_port }}" ############ Gitea  db port to be provide default 5432
+    gitea_pgsql_db: "{{ gitea_pgsql_database }}" ############ Gitea  db to be provide default "giteadb"
+    gitea_pgsql_user: "{{ gitea_pgsql_user }}" ############ Gitea user db to be provide default"giteauser"
+    gitea_pgsql_password: "{{ gitea_pgsql_password }}" ############ Gitea user db password to be provide default "SuperSecretPassword"
+
+  roles:
+    - install_onprem_gitea

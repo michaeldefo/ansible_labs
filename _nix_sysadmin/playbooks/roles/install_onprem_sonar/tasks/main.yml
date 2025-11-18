@@ -1,50 +1,97 @@
-﻿--- 
-- name: Create SonarQube user
-  user:
-    name: "{{ sonar_usr }}" 
-    shell: /bin/bash
-    home: "{{ sonar_home }}" 
-    create_home: yes
-    system: yes
+﻿  tasks:
 
-- name: Set ownership of SonarQube data
-  file:
-    path: "{{ sonar_home }}"
-    owner: "{{ sonar_usr }}"
-    group: "{{ sonar_usr }}"
-    recurse: yes
+    # --- OS-specific prerequisites ---
+    - name: Install required packages (Debian)
+      apt:
+        name:
+          - "{{ sonar_java_package_debian }}"
+          - unzip
+          - wget
+        state: present
+      when: ansible_os_family == "Debian"
 
-- name: Install unzip
-  package:
-    name: unzip
-    state: present
+    - name: Install required packages (Rocky/RedHat)
+      yum:
+        name:
+          - "{{ sonar_java_package_redhat }}"
+          - unzip
+          - wget
+        state: present
+      when: ansible_os_family == "RedHat"
 
-- name: Download SonarQube
-  get_url:
-    url: https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-"{{ sonar_version }}".zip   ### Version 10.3.0.82913
-    dest: /opt/sonarqube.zip
+    # --- Dedicated user & group ---
+    - name: Create SonarQube group
+      group:
+        name: "{{ sonar_group }}"
+        state: present
 
-- name: Extract SonarQube
-  unarchive:
-    src: /opt/sonarqube.zip
-    dest: "{{ sonar_home }}"
-    remote_src: yes
+    - name: Create SonarQube user
+      user:
+        name: "{{ sonar_user }}"
+        group: "{{ sonar_group }}"
+        home: "{{ sonar_home }}"
+        shell: /bin/bash
+        create_home: no
+        system: yes
 
-#- name: Move to /data/sonarqube
-#  command: mv /opt/sonarqube-10.3.0.82913 /data/sonarqube creates=/data/sonarqube
+    # --- Download & install SonarQube ---
+    - name: Download SonarQube archive
+      get_url:
+        url: "{{ sonar_download_url }}"
+        dest: "/tmp/sonarqube.zip"
 
-- name: Configure DB access
-  lineinfile:
-    path: "{{ sonar_properties_file }}"       ############ sonar properties file /data/sonarqube/conf/sonar.properties
-    regexp: '^{{ item.key }}='
-    line: '{{ item.key }}={{ item.value }}'
-  loop:
-    - { key: 'sonar.jdbc.url', value: 'jdbc:postgresql://{{ external_db_host }}:{{ external_db_port }}/{{ sonar_db_name }}' }
-    - { key: 'sonar.jdbc.username', value: '{{ sonar_db_user }}' }
-    - { key: 'sonar.jdbc.password', value: '{{ sonar_db_password }}' }
+    - name: Extract SonarQube
+      unarchive:
+        src: "/tmp/sonarqube.zip"
+        dest: "/opt/"
+        remote_src: yes
+      notify: Restart SonarQube
 
-- name: Start SonarQube
-  systemd:
-    name: sonarqube
-    state: started
-    enabled: true
+    - name: Ensure correct ownership
+      file:
+        path: "{{ sonar_home }}"
+        state: directory
+        owner: "{{ sonar_user }}"
+        group: "{{ sonar_group }}"
+        recurse: yes
+
+    # --- Configure SonarQube to use external PostgreSQL ---
+    - name: Configure sonar.properties
+      lineinfile:
+        path: "{{ sonar_home }}/conf/sonar.properties"
+        regexp: '^#?sonar.jdbc.url='
+        line: "sonar.jdbc.url=jdbc:postgresql://{{ sonar_pgsql_host }}:{{ sonar_pgsql_port }}/{{ sonar_pgsql_db }}"
+      notify: Restart SonarQube
+
+    - name: Configure sonar.jdbc.username
+      lineinfile:
+        path: "{{ sonar_home }}/conf/sonar.properties"
+        regexp: '^#?sonar.jdbc.username='
+        line: "sonar.jdbc.username={{ sonar_pgsql_user }}"
+      notify: Restart SonarQube
+
+    - name: Configure sonar.jdbc.password
+      lineinfile:
+        path: "{{ sonar_home }}/conf/sonar.properties"
+        regexp: '^#?sonar.jdbc.password='
+        line: "sonar.jdbc.password={{ sonar_pgsql_password }}"
+      notify: Restart SonarQube
+
+    # --- Systemd service via template ---
+    - name: Deploy systemd unit file from template
+      template:
+        src: sonarqube.service.j2
+        dest: /etc/systemd/system/sonarqube.service
+      notify: Restart SonarQube
+
+    - name: Enable and start SonarQube
+      systemd:
+        name: sonarqube
+        enabled: yes
+        state: started
+
+  handlers:
+    - name: Restart SonarQube
+      systemd:
+        name: sonarqube
+        state: restarted
