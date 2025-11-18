@@ -1,0 +1,50 @@
+﻿--- 
+- name: Create SonarQube user
+  user:
+    name: "{{ sonar_usr }}" 
+    shell: /bin/bash
+    home: "{{ sonar_home }}" 
+    create_home: yes
+    system: yes
+
+- name: Set ownership of SonarQube data
+  file:
+    path: "{{ sonar_home }}"
+    owner: "{{ sonar_usr }}"
+    group: "{{ sonar_usr }}"
+    recurse: yes
+
+- name: Install unzip
+  package:
+    name: unzip
+    state: present
+
+- name: Download SonarQube
+  get_url:
+    url: https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-"{{ sonar_version }}".zip   ### Version 10.3.0.82913
+    dest: /opt/sonarqube.zip
+
+- name: Extract SonarQube
+  unarchive:
+    src: /opt/sonarqube.zip
+    dest: "{{ sonar_home }}"
+    remote_src: yes
+
+#- name: Move to /data/sonarqube
+#  command: mv /opt/sonarqube-10.3.0.82913 /data/sonarqube creates=/data/sonarqube
+
+- name: Configure DB access
+  lineinfile:
+    path: "{{ sonar_properties_file }}"       ############ sonar properties file /data/sonarqube/conf/sonar.properties
+    regexp: '^{{ item.key }}='
+    line: '{{ item.key }}={{ item.value }}'
+  loop:
+    - { key: 'sonar.jdbc.url', value: 'jdbc:postgresql://{{ external_db_host }}:{{ external_db_port }}/{{ sonar_db_name }}' }
+    - { key: 'sonar.jdbc.username', value: '{{ sonar_db_user }}' }
+    - { key: 'sonar.jdbc.password', value: '{{ sonar_db_password }}' }
+
+- name: Start SonarQube
+  systemd:
+    name: sonarqube
+    state: started
+    enabled: true

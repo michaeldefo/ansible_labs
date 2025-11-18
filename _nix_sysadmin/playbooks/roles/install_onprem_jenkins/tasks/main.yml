@@ -1,0 +1,69 @@
+﻿--- 
+- name: Create Jenkins user
+  user:
+    name: "{{ jenkins_usr }}" 
+    shell: /bin/bash
+    home: "{{ jenkins_home }}"
+    create_home: yes
+    system: yes
+
+- name: Set ownership of Jenkins data
+  file:
+    path: "{{ jenkins_home }}"
+    owner: "{{ jenkins_usr }}"
+    group: "{{ jenkins_usr }}"
+    recurse: yes
+
+- name: Add Jenkins repo (Debian)
+  apt_key:
+    url: https://pkg.jenkins.io/debian/jenkins.io.key
+    state: present
+  when: ansible_distribution == 'Debian'
+
+- name: Add Jenkins repo (RHEL)
+  get_url:
+    url: https://pkg.jenkins.io/redhat-stable/jenkins.repo
+    dest: /etc/yum.repos.d/jenkins.repo
+  when: ansible_distribution == 'Rocky'
+
+- name: Import Jenkins GPG key (RHEL)
+  rpm_key:
+    key: https://pkg.jenkins.io/redhat-stable/jenkins.io.key
+    state: present
+  when: ansible_distribution == 'Rocky'
+
+- name: Install Jenkins
+  package:
+    name: jenkins
+    state: present
+
+- name: Create Jenkins data directory
+  file:
+    path: "{{ jenkins_home }}" ######### Custom directory for JENKINS_DATA_DIR 
+    state: directory
+    owner: "{{ jenkins_usr }}"    ######### jenkins dedicated user
+    group: "{{ jenkins_usr }}"    ######### jenkins dedicated group
+    mode: '0755'
+
+- name: Set JENKINS_HOME (Debian)
+  lineinfile:
+    path: /etc/default/jenkins
+    regexp: '^JENKINS_HOME='
+    line: 'JENKINS_HOME={{ jenkins_home }}'
+    create: yes
+  when: ansible_distribution == 'Debian'
+
+- name: Set JENKINS_HOME (RHEL)
+  lineinfile:
+    path: /etc/sysconfig/jenkins
+    regexp: '^JENKINS_HOME='
+    line: 'JENKINS_HOME={{ jenkins_home }}'
+    create: yes
+  when: ansible_distribution == 'Rocky'
+
+- name: Start Jenkins
+  systemd:
+    name: jenkins
+    state: started
+    enabled: true
+

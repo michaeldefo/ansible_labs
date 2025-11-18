@@ -1,0 +1,28 @@
+#---
+# Metadata
+#version: "0.0.1"
+#author: "Michael D <dtmghislain@gmail.com>"
+#comment: "Part of ansible_labs project named nix_sysadmin for automating linux administration tasks"
+#repos_dev: https://github.com/michaeldefo/ansible_labs/tree/feature/Install_CICD_Tools- branch for DEV
+#repos_main: https://github.com/michaeldefo/ansible_labs.git to commit on global repos
+#description: Deploy CICD Tools (Jenkins, Harbor, Sonar)
+
+- name: Deploy SonarQube OnPrem Server or VM
+  hosts: all
+  become: true
+  vars:
+    sonar_usr: "{{ sonar_usr }}" ### Compte dédie sonar
+    sonar_home: "{{ sonar_home }}" ### repertoire dédié sonar
+    sonar_version: "{{ sonar_version }}"   ### version de sonar utilisé
+    external_db_host: "{{ external_db_host }}"   ### Sonar User External DB Host
+    external_db_port: "{{ external_db_port }}"   ### Sonar User External DB Port
+    sonar_db_name: "{{ sonar_db_name}}"   ### Sonar DB name
+    sonar_db_user: "{{ sonar_db_user }}"   ### Sonar User DB User
+    sonar_db_password: "{{ sonar_db_password }}"   ### Sonar User DB Password
+    sonar_start_script: "{{ sonar_start_script }}"   ### Sonar service start script
+    sonar_start_stop: "{{ sonar_stop_script }}"   ### Sonar service stop script
+    sonarqube_service: "{{ sonarqube_service }}"   ### Sonar service name
+    sonar_properties_file: "{{ sonar_properties_file }}"   ### Sonar properties file
+
+  roles:
+    - install_onprem_sonar
