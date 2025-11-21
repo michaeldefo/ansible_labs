@@ -32,6 +32,19 @@
     state: present
   when: ansible_distribution == 'Rocky'
 
+- name: Update with the new repos declared (Debian/Ubuntu)
+  ansible.builtin.shell: |
+    apt update -y 
+  when: ansible_facts['os_family'] == "Debian"
+  become: yes
+
+- name: Update with the new repos declared (RHEL/CentOS/Rocky)
+  ansible.builtin.shell: |
+    dnf update -y
+  when: ansible_facts['os_family'] == "RedHat"
+  become: yes
+
+
 - name: Install Jenkins
   package:
     name: jenkins
