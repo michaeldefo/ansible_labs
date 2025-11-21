@@ -23,26 +23,34 @@
     group: "{{ jenkins_usr }}"
     mode: '0755'
 
-# --- Repository Setup ---
+# --- Repository Setup 
+- name: Import Jenkins GPG key on Debian/Ubuntu
+  ansible.builtin.get_url:
+    url: https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+    dest: /usr/share/keyrings/jenkins-keyring.asc
+    mode: '0644'
+  when: ansible_os_family == "Debian"
+
 - name: Add Jenkins repo on Debian/Ubuntu
-  apt_repository:
-    repo: "deb https://pkg.jenkins.io/debian-stable binary/"
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/"
     state: present
   when: ansible_os_family == "Debian"
 
-- name: Import Jenkins GPG key on Debian/Ubuntu
-  apt_key:
-    url: https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
-    state: present
-  when: ansible_os_family == "Debian"
+- name: Import Jenkins GPG key on RHEL/CentOS
+  ansible.builtin.get_url:
+    url: https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+    dest: /etc/pki/rpm-gpg/jenkins.io-2023.key
+    mode: '0644'
+  when: ansible_os_family == "RedHat"
 
 - name: Add Jenkins repo on RHEL/CentOS
-  yum_repository:
+  ansible.builtin.yum_repository:
     name: jenkins
     description: Jenkins LTS repo
     baseurl: https://pkg.jenkins.io/redhat-stable/
     gpgcheck: yes
-    gpgkey: https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+    gpgkey: file:///etc/pki/rpm-gpg/jenkins.io-2023.key
     enabled: yes
   when: ansible_os_family == "RedHat"
 
@@ -98,4 +106,4 @@
     name: jenkins
     state: started
     enabled: true
-    
+
