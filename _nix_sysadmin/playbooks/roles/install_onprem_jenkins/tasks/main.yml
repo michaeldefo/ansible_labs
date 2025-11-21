@@ -1,7 +1,8 @@
-﻿--- 
+﻿---
+# --- User & Directory Isolation ---
 - name: Create Jenkins user
   user:
-    name: "{{ jenkins_usr }}" 
+    name: "{{ jenkins_usr }}"
     shell: /bin/bash
     home: "{{ jenkins_home }}"
     create_home: yes
@@ -14,69 +15,87 @@
     group: "{{ jenkins_usr }}"
     recurse: yes
 
-- name: Add Jenkins repo (Debian)
+- name: Create Jenkins data directory
+  file:
+    path: "{{ jenkins_home }}"
+    state: directory
+    owner: "{{ jenkins_usr }}"
+    group: "{{ jenkins_usr }}"
+    mode: '0755'
+
+# --- Repository Setup ---
+- name: Add Jenkins repo on Debian/Ubuntu
+  apt_repository:
+    repo: "deb https://pkg.jenkins.io/debian-stable binary/"
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: Import Jenkins GPG key on Debian/Ubuntu
   apt_key:
-    url: https://pkg.jenkins.io/debian/jenkins.io.key
+    url: https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
     state: present
-  when: ansible_distribution == 'Debian'
+  when: ansible_os_family == "Debian"
 
-- name: Add Jenkins repo (RHEL)
-  get_url:
-    url: https://pkg.jenkins.io/redhat-stable/jenkins.repo
-    dest: /etc/yum.repos.d/jenkins.repo
-  when: ansible_distribution == 'Rocky'
+- name: Add Jenkins repo on RHEL/CentOS
+  yum_repository:
+    name: jenkins
+    description: Jenkins LTS repo
+    baseurl: https://pkg.jenkins.io/redhat-stable/
+    gpgcheck: yes
+    gpgkey: https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+    enabled: yes
+  when: ansible_os_family == "RedHat"
 
-- name: Import Jenkins GPG key (RHEL)
-  rpm_key:
-    key: https://pkg.jenkins.io/redhat-stable/jenkins.io.key
-    state: present
-  when: ansible_distribution == 'Rocky'
-
-- name: Update with the new repos declared (Debian/Ubuntu)
-  ansible.builtin.shell: |
-    apt update -y 
+# --- Update Package Cache ---
+- name: Update with new repos (Debian/Ubuntu)
+  ansible.builtin.shell: apt update -y
   when: ansible_facts['os_family'] == "Debian"
-  become: yes
 
-- name: Update with the new repos declared (RHEL/CentOS/Rocky)
-  ansible.builtin.shell: |
-    dnf update -y
+
+- name: Update with new repos (RHEL/CentOS/Rocky)
+  ansible.builtin.shell: dnf update -y
   when: ansible_facts['os_family'] == "RedHat"
-  become: yes
 
+# Add Java
+- name: Install Java (Debian)
+  apt:
+    name: openjdk-21-jdk
+    state: present
+  when: ansible_os_family == "Debian"
 
+- name: Install Java (RHEL)
+  dnf:
+    name: java-21-openjdk
+    state: present
+  when: ansible_os_family == "RedHat"
+  
+# --- Install Jenkins ---
 - name: Install Jenkins
   package:
     name: jenkins
     state: present
 
-- name: Create Jenkins data directory
-  file:
-    path: "{{ jenkins_home }}" ######### Custom directory for JENKINS_DATA_DIR 
-    state: directory
-    owner: "{{ jenkins_usr }}"    ######### jenkins dedicated user
-    group: "{{ jenkins_usr }}"    ######### jenkins dedicated group
-    mode: '0755'
-
+# --- Configure JENKINS_HOME ---
 - name: Set JENKINS_HOME (Debian)
   lineinfile:
     path: /etc/default/jenkins
     regexp: '^JENKINS_HOME='
-    line: 'JENKINS_HOME={{ jenkins_home }}'
+    line: "JENKINS_HOME={{ jenkins_home }}"
     create: yes
   when: ansible_distribution == 'Debian'
 
-- name: Set JENKINS_HOME (RHEL)
+- name: Set JENKINS_HOME (RHEL/Rocky)
   lineinfile:
     path: /etc/sysconfig/jenkins
     regexp: '^JENKINS_HOME='
-    line: 'JENKINS_HOME={{ jenkins_home }}'
+    line: "JENKINS_HOME={{ jenkins_home }}"
     create: yes
-  when: ansible_distribution == 'Rocky'
+  when: ansible_distribution in ['RedHat', 'Rocky']
 
+# --- Service Management ---
 - name: Start Jenkins
   systemd:
     name: jenkins
     state: started
     enabled: true
-
+    
