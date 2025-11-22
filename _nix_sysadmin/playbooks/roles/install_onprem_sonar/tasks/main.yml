@@ -88,9 +88,4 @@
         name: sonarqube
         enabled: yes
         state: started
-
-  handlers:
-    - name: Restart SonarQube
-      systemd:
-        name: sonarqube
-        state: restarted
+        
