@@ -1,0 +1,7 @@
+---
+# handlers/main.yml
+- name: Restart SonarQube
+  become: true
+  ansible.builtin.service:
+    name: sonarqube
+    state: restarted
