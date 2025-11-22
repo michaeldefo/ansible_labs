@@ -36,7 +36,8 @@
     # --- Download & install SonarQube ---
     - name: Download SonarQube archive
       get_url:
-        url: "{{ sonar_download_url }}"
+        #url: "{{ sonar_download_url }}"
+        url: "https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-{{ sonar_version }}.zip"
         dest: "/tmp/sonarqube.zip"
 
     - name: Extract SonarQube
@@ -88,4 +89,3 @@
         name: sonarqube
         enabled: yes
         state: started
-        
