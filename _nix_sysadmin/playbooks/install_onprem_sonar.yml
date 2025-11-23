@@ -18,9 +18,9 @@
     sonar_download_url: "{{ sonar_download_url }}" ############ URl D'accès au binaire "https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-{{ sonar_version }}.zip"
     sonar_pgsql_host: "{{ sonar_pgsql_host }}"   ### Sonar User External DB Host
     sonar_pgsql_port: "{{ sonar_pgsql_port }}"   ### Sonar User External DB Port
-    sonar_db_name: "{{ sonar_db_name}}"   ### Sonar DB name
-    sonar_db_user: "{{ sonar_db_user }}"   ### Sonar User DB User
-    sonar_db_password: "{{ sonar_db_password }}"   ### Sonar User DB Password
+    sonar_pgsql_db: "{{ sonar_pgsql_db}}"   ### Sonar DB name
+    sonar_pgsql_user: "{{ sonar_pgsql_user }}"   ### Sonar User DB User
+    sonar_pgsql_password: "{{ sonar_pgsql_password }}"   ### Sonar User DB Password
     sonar_start_script: "{{ sonar_start_script }}"   ### Sonar service start script
     sonar_start_stop: "{{ sonar_stop_script }}"   ### Sonar service stop script
     sonarqube_service: "{{ sonarqube_service }}"   ### Sonar service name
