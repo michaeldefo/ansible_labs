@@ -24,7 +24,7 @@
     keycloak_pgsql_port: "{{ keycloak_pgsql_port }}" ############ keycloak  db port to be provide default 5432
     keycloak_pgsql_db: "{{ keycloak_pgsql_database }}" ############ keycloak  db to be provide default "keycloakdb"
     keycloak_pgsql_user: "{{ keycloak_pgsql_user }}" ############ keycloak user db to be provide default"keycloakuser"
-    keycloak_pgsql_password: "{{ keycloak_pgsql_password }}" ############ Gitea user db password to be provide default "SuperSecretPassword"
+    keycloak_pgsql_password: "{{ keycloak_pgsql_password }}" ############ Keycloak user db password to be provide default "SuperSecretPassword"
 
   roles:
-    - install_onprem_gitea
+    - install_onprem_keycloak
