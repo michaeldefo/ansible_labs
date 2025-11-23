@@ -49,7 +49,7 @@
 
     - name: Ensure correct ownership
       file:
-        path: "{{ sonar_home }}"
+        path: "{{ sonar_home }}-{{ sonar_version }}"
         state: directory
         owner: "{{ sonar_user }}"
         group: "{{ sonar_group }}"
@@ -58,14 +58,14 @@
     # --- Configure SonarQube to use external PostgreSQL ---
     - name: Configure sonar.properties
       lineinfile:
-        path: "{{ sonar_home }}/conf/sonar.properties"
+        path: "{{ sonar_home }}-{{ sonar_version }}/conf/sonar.properties"
         regexp: '^#?sonar.jdbc.url='
         line: "sonar.jdbc.url=jdbc:postgresql://{{ sonar_pgsql_host }}:{{ sonar_pgsql_port }}/{{ sonar_pgsql_db }}"
       notify: Restart SonarQube
 
     - name: Configure sonar.jdbc.username
       lineinfile:
-        path: "{{ sonar_home }}/conf/sonar.properties"
+        path: "{{ sonar_home }}-{{ sonar_version }}/conf/sonar.properties"
         regexp: '^#?sonar.jdbc.username='
         line: "sonar.jdbc.username={{ sonar_pgsql_user }}"
       notify: Restart SonarQube
