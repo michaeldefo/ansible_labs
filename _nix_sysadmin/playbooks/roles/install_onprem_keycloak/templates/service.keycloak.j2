@@ -1,0 +1,14 @@
+[Unit]
+Description=Keycloak Server
+After=network.target
+
+[Service]
+User={{ keycloak_user }}
+Group={{ keycloak_group }}
+ExecStart={{ keycloak_install_dir }}/bin/kc.sh start \
+  --http-port={{ keycloak_http_port }} \
+  --https-port={{ keycloak_https_port }}
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

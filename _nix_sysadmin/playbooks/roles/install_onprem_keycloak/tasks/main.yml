@@ -1,6 +1,76 @@
-﻿--- 
-# same for this windows version add usage line on comment
-- name: Ensure NTP is installed
-  package:
-    name: ntp
+﻿- name: Ensure keycloak group exists
+  ansible.builtin.group:
+    name: "{{ keycloak_group }}"
     state: present
+
+- name: Ensure keycloak user exists
+  ansible.builtin.user:
+    name: "{{ keycloak_user }}"
+    group: "{{ keycloak_group }}"
+    shell: /bin/bash
+    create_home: no
+    system: yes
+
+- name: Download Keycloak archive
+  ansible.builtin.get_url:
+    url: "https://github.com/keycloak/keycloak/releases/download/{{ keycloak_version }}/keycloak-{{ keycloak_version }}.tar.gz"
+    dest: "/tmp/keycloak-{{ keycloak_version }}.tar.gz"
+
+- name: Extract Keycloak
+  ansible.builtin.unarchive:
+    src: "/tmp/keycloak-{{ keycloak_version }}.tar.gz"
+    dest: "{{ keycloak_install_dir }}"
+    remote_src: yes
+    creates: "{{ keycloak_install_dir }}/bin"
+
+- name: Set ownership
+  ansible.builtin.file:
+    path: "{{ keycloak_install_dir }}"
+    state: directory
+    recurse: yes
+    owner: "{{ keycloak_user }}"
+    group: "{{ keycloak_group }}"
+
+- name: Configure Keycloak datasource
+  ansible.builtin.template:
+    src: standalone.xml.j2
+    dest: "{{ keycloak_install_dir }}/standalone/configuration/standalone.xml"
+    owner: "{{ keycloak_user }}"
+    group: "{{ keycloak_group }}"
+    mode: '0644'
+    
+- name: Configure Keycloak ports
+  ansible.builtin.lineinfile:
+    path: "{{ keycloak_install_dir }}/conf/keycloak.conf"
+    regexp: '^http-port='
+    line: "http-port={{ keycloak_http_port }}"
+    create: yes
+    owner: "{{ keycloak_user }}"
+    group: "{{ keycloak_group }}"
+    mode: '0644'
+
+- name: Configure Keycloak HTTPS port
+  ansible.builtin.lineinfile:
+    path: "{{ keycloak_install_dir }}/conf/keycloak.conf"
+    regexp: '^https-port='
+    line: "https-port={{ keycloak_https_port }}"
+    create: yes
+    owner: "{{ keycloak_user }}"
+    group: "{{ keycloak_group }}"
+    mode: '0644'
+
+- name: Install systemd unit
+  ansible.builtin.template:
+    src: keycloak.service.j2
+    dest: /etc/systemd/system/keycloak.service
+    mode: '0644'
+
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: yes
+
+- name: Enable and start Keycloak
+  ansible.builtin.systemd:
+    name: keycloak
+    state: started
+    enabled: yes
