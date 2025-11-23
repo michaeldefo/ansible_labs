@@ -13,6 +13,7 @@
   vars:
     keycloak_version: "{{ keycloak_version }}"     ############ keycloak version to be provide default "1.22.0"
     keycloak_user: "{{ keycloak_user }}"                 ############ keycloak user to be provide default "keycloak" 
+    keycloak_group: "{{ keycloak_group }}"                 ############ keycloak user to be provide default "keycloak" 
     keycloak_home: "{{ keycloak_home }}"              ############ keycloak working dir to be provide default "/var/lib/keycloak"
     keycloak_bin: "{{ keycloak_bin }}"              ############ keycloak bin dir to be provide default "/usr/local/bin/keycloak"
     keycloak_config: "{{ keycloak_config }}" ############ keycloak config dir to be provide default "/etc/keycloak"
