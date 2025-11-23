@@ -5,7 +5,7 @@ After=syslog.target network.target
 [Service]
 Type=forking
 ############## Sonar home start directory
-WorkingDirectory={{ sonar_home }}-{{ sonar_version }}/bin/linux-x86-64
+WorkingDirectory={{ sonar_home }}-{{ sonar_version }}
 ############## Sonar start script user sonar /data/sonarqube/bin/linux-x86-64/sonar.sh start 
 ExecStart={{ sonar_home }}-{{ sonar_version }}/bin/linux-x86-64/sonar.sh start 
 ############## Sonar stop script user sonar /data/sonarqube/bin/linux-x86-64/sonar.sh stop          
