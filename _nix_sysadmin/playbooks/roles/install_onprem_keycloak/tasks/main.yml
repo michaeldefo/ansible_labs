@@ -32,7 +32,7 @@
   ansible.builtin.group:
     name: "{{ keycloak_group }}"
     state: present
-    system: yes
+
 
 - name: Ensure keycloak user exists
   ansible.builtin.user:
