@@ -1,5 +1,14 @@
 ﻿---
     # --- OS-specific prerequisites ---
+    - name: Ensure vm.max_map_count is set for Elasticsearch
+      become: true
+      ansible.builtin.sysctl:
+       name: vm.max_map_count
+       value: 262144
+       state: present   # ensures it's persisted across reboots
+       sysctl_set: true
+    
+    # --- OS-specific prerequisites ---
     - name: Install required packages (Debian)
       apt:
         name:
