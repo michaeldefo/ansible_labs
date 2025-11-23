@@ -6,8 +6,8 @@ After=syslog.target network.target
 Type=forking
 ExecStart={{ sonar_start_script }}           ############## Sonar start script user sonar /data/sonarqube/bin/linux-x86-64/sonar.sh start 
 ExecStop={{ sonar_stop_script }}             ############## Sonar stop script user sonar /data/sonarqube/bin/linux-x86-64/sonar.sh stop 
-User={{ sonar_usr }}                         ############### Sonar dedicated user sonar
-Group={{ sonar_usr }}                        ############### Sonar dedicated group sonar
+User={{ sonar_user }}                         ############### Sonar dedicated user sonar
+Group={{ sonar_user }}                        ############### Sonar dedicated group sonar
 Restart=always
 
 [Install]
