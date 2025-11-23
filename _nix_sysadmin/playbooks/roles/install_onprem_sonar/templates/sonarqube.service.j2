@@ -4,11 +4,18 @@ After=syslog.target network.target
 
 [Service]
 Type=forking
-ExecStart="{{ sonar_home }}-{{ sonar_version }}/bin/linux-x86-64/sonar.sh start"          ############## Sonar start script user sonar /data/sonarqube/bin/linux-x86-64/sonar.sh start 
-ExecStop="{{ sonar_home }}-{{ sonar_version }}/bin/linux-x86-64/sonar.sh stop"              ############## Sonar stop script user sonar /data/sonarqube/bin/linux-x86-64/sonar.sh stop 
-User={{ sonar_user }}                         ############### Sonar dedicated user sonar
-Group={{ sonar_user }}                        ############### Sonar dedicated group sonar
+############## Sonar start script user sonar /data/sonarqube/bin/linux-x86-64/sonar.sh start 
+ExecStart="{{ sonar_home }}-{{ sonar_version }}/bin/linux-x86-64/sonar.sh start" 
+############## Sonar stop script user sonar /data/sonarqube/bin/linux-x86-64/sonar.sh stop          
+ExecStop="{{ sonar_home }}-{{ sonar_version }}/bin/linux-x86-64/sonar.sh stop" 
+############### Sonar dedicated user sonar            
+User={{ sonar_user }}    
+############### Sonar dedicated group sonar                     
+Group={{ sonar_user }}    
+
 Restart=always
+LimitNOFILE=65536
+LimitNPROC=4096
 
 [Install]
 WantedBy=multi-user.target
