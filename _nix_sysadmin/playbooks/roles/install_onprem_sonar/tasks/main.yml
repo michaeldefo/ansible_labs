@@ -72,7 +72,7 @@
 
     - name: Configure sonar.jdbc.password
       lineinfile:
-        path: "{{ sonar_home }}/conf/sonar.properties"
+        path: "{{ sonar_home }}-{{ sonar_version }}/conf/sonar.properties"
         regexp: '^#?sonar.jdbc.password='
         line: "sonar.jdbc.password={{ sonar_pgsql_password }}"
       notify: Restart SonarQube
