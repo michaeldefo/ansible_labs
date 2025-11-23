@@ -29,13 +29,13 @@
 
 - name: Ensure keycloak group exists
   ansible.builtin.group:
-    name: "{{ keycloak_group }}"
+    name: "{{ keycloak_user }}"
     state: present
 
 - name: Ensure keycloak user exists
   ansible.builtin.user:
     name: "{{ keycloak_user }}"
-    group: "{{ keycloak_group }}"
+    group: "{{ keycloak_user }}"
     shell: /bin/bash
     create_home: no
     system: yes
