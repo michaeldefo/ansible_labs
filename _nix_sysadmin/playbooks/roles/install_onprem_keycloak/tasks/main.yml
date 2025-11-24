@@ -36,8 +36,9 @@
   ansible.builtin.user:
     name: "{{ keycloak_user }}"
     group: "{{ keycloak_group }}"
+    home: "{{ keycloak_install_dir }}"
     shell: /bin/bash
-    create_home: no
+    create_home: yes
     system: yes
 
 - name: Download Keycloak archive
