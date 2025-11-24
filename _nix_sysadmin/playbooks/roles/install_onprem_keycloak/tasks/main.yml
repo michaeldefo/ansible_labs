@@ -27,12 +27,10 @@
     update_cache: yes
   when: ansible_os_family == "Debian"
 
-
-#- name: Ensure keycloak group exists
-#  ansible.builtin.group:
-#    name: "{{ keycloak_group }}"
-#   state: present
-
+- name: Ensure keycloak group exists
+  ansible.builtin.group:
+    name: "{{ keycloak_group }}"
+    state: present
 
 - name: Ensure keycloak user exists
   ansible.builtin.user:
