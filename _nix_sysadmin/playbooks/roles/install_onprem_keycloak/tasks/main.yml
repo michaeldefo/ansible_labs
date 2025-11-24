@@ -1,13 +1,11 @@
-﻿- name: Enable EPEL and OpenJDK 21 repo
-  ansible.builtin.yum_repository:
-    name: "openjdk21"
-    description: "OpenJDK 21 for RHEL"
-    baseurl: "https://download.java.net/java/GA/jdk21/latest/binaries/linux-x64/"
-    enabled: yes
-    gpgcheck: no
+﻿# --- RHEL / CentOS ---
+- name: Update package cache (RHEL)
+  ansible.builtin.yum:
+    name: "*"
+    state: latest
   when: ansible_os_family == "RedHat"
 
-- name: Install OpenJDK 21
+- name: Install OpenJDK 21 (RHEL)
   ansible.builtin.yum:
     name: java-21-openjdk
     state: present
