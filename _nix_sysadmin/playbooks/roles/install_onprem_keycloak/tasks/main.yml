@@ -38,8 +38,16 @@
     group: "{{ keycloak_group }}"
     home: "{{ keycloak_install_dir }}"
     shell: /bin/bash
-    create_home: yes
+    create_home: no   # disable default home creation since it's custom
     system: yes
+
+- name: Ensure keycloak install dir exists
+  ansible.builtin.file:
+    path: "{{ keycloak_install_dir }}"
+    state: directory
+    owner: "{{ keycloak_user }}"
+    group: "{{ keycloak_group }}"
+    mode: '0755'
 
 - name: Download Keycloak archive
   ansible.builtin.get_url:
