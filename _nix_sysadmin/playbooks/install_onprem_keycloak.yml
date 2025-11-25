@@ -19,6 +19,7 @@
     keycloak_config: "{{ keycloak_config }}" ############ keycloak config dir to be provide default "/etc/keycloak"
     keycloak_http_port: "{{ keycloak_http_port }}" ############ keycloak port to be provide default 9090
     keycloak_https_port: "{{ keycloak_https_port }}" ############ keycloak port to be provide default 9443
+    keycloak_hostname: "{{ keycloak_hostname }}" ############ keycloak dns hostname
 
 # External PostgreSQL settings
     keycloak_pgsql_host: "{{ keycloak_pgsql_host }}" ############ keycloak  db host to be provide default "db.example.com"

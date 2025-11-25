@@ -67,30 +67,18 @@
     owner: "{{ keycloak_user }}"
     group: "{{ keycloak_group }}"
 
+- name: Download PostgreSQL JDBC driver
+  ansible.builtin.get_url:
+    url: "https://jdbc.postgresql.org/download/postgresql-{{ keycloak_jdbc_version | default('42.7.3') }}.jar"
+    dest: "{{ keycloak_install_dir }}/keycloak-{{ keycloak_version }}/providers/postgresql.jar"
+    owner: "{{ keycloak_user }}"
+    group: "{{ keycloak_group }}"
+    mode: '0644'
+
 - name: Configure Keycloak datasource
   ansible.builtin.template:
-    src: standalone.xml.j2
-    dest: "{{ keycloak_install_dir }}/keycloak-{{ keycloak_version }}/standalone/configuration/standalone.xml"
-    owner: "{{ keycloak_user }}"
-    group: "{{ keycloak_group }}"
-    mode: '0644'
-
-- name: Configure Keycloak ports
-  ansible.builtin.lineinfile:
-    path: "{{ keycloak_install_dir }}/keycloak-{{ keycloak_version }}/conf/keycloak.conf"
-    regexp: '^http-port='
-    line: "http-port={{ keycloak_http_port }}"
-    create: yes
-    owner: "{{ keycloak_user }}"
-    group: "{{ keycloak_group }}"
-    mode: '0644'
-
-- name: Configure Keycloak HTTPS port
-  ansible.builtin.lineinfile:
-    path: "{{ keycloak_install_dir }}/keycloak-{{ keycloak_version }}/conf/keycloak.conf"
-    regexp: '^https-port='
-    line: "https-port={{ keycloak_https_port }}"
-    create: yes
+    src: keycloak.conf.j2
+    dest: "{{ keycloak_install_dir }}/keycloak-{{ keycloak_version }}/conf/keycloak.conf"
     owner: "{{ keycloak_user }}"
     group: "{{ keycloak_group }}"
     mode: '0644'
