@@ -83,6 +83,13 @@
     group: "{{ keycloak_group }}"
     mode: '0644'
 
+- name: Rebuild Keycloak with new providers
+  ansible.builtin.command:
+    cmd: "{{ keycloak_install_dir }}/keycloak-{{ keycloak_version }}/bin/kc.sh build"
+    chdir: "{{ keycloak_install_dir }}/keycloak-{{ keycloak_version }}"
+  become: true
+  become_user: "{{ keycloak_user }}"
+
 - name: Install systemd unit
   ansible.builtin.template:
     src: keycloak.service.j2
