@@ -57,11 +57,11 @@
     src: "/tmp/keycloak-{{ keycloak_version }}.tar.gz"
     dest: "{{ keycloak_install_dir }}"
     remote_src: yes
-    creates: "{{ keycloak_install_dir }}/bin"
+    creates: "{{ keycloak_install_dir }}/keycloak-{{ keycloak_version }}/bin"
 
 - name: Set ownership
   ansible.builtin.file:
-    path: "{{ keycloak_install_dir }}"
+    path: "{{ keycloak_install_dir }}/keycloak-{{ keycloak_version }}"
     state: directory
     recurse: yes
     owner: "{{ keycloak_user }}"
@@ -70,14 +70,14 @@
 - name: Configure Keycloak datasource
   ansible.builtin.template:
     src: standalone.xml.j2
-    dest: "{{ keycloak_install_dir }}/standalone/configuration/standalone.xml"
+    dest: "{{ keycloak_install_dir }}/keycloak-{{ keycloak_version }}/standalone/configuration/standalone.xml"
     owner: "{{ keycloak_user }}"
     group: "{{ keycloak_group }}"
     mode: '0644'
 
 - name: Configure Keycloak ports
   ansible.builtin.lineinfile:
-    path: "{{ keycloak_install_dir }}/conf/keycloak.conf"
+    path: "{{ keycloak_install_dir }}/keycloak-{{ keycloak_version }}/conf/keycloak.conf"
     regexp: '^http-port='
     line: "http-port={{ keycloak_http_port }}"
     create: yes
@@ -87,7 +87,7 @@
 
 - name: Configure Keycloak HTTPS port
   ansible.builtin.lineinfile:
-    path: "{{ keycloak_install_dir }}/conf/keycloak.conf"
+    path: "{{ keycloak_install_dir }}/keycloak-{{ keycloak_version }}/conf/keycloak.conf"
     regexp: '^https-port='
     line: "https-port={{ keycloak_https_port }}"
     create: yes
