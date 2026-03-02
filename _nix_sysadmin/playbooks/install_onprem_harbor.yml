@@ -1,0 +1,28 @@
+#---
+# Metadata
+#version: "0.0.1"
+#author: "Michael D <dtmghislain@gmail.com>"
+#comment: "Part of ansible_labs project named nix_sysadmin for automating linux administration tasks"
+#repos_dev: https://github.com/michaeldefo/ansible_labs/tree/feature/Install_CICD_Tools- branch for DEV
+#repos_main: https://github.com/michaeldefo/ansible_labs.git to commit on global repos
+#description: Deploy CICD Tools (Jenkins, Harbor, Sonar)
+
+- name: Deploy Harbor OnPrem Server or VM
+  hosts: all
+  become: true
+  vars:
+    harbor_usr: "{{ harbor_usr }}" ### Compte dédie Harbor
+    harbor_home: "{{ harbor_home }}" ### repertoire dédié Harbor
+    harbor_version: "{{ harbor_version }}"   ### version de Harbor utilisé
+    harbor_http: "{{ harbor_http }}"  ### Harbor HTTP Port 
+    harbor_https: "{{ harbor_https }}" ### Harbor HTTPS Port
+    harbor_key: "{{ harbor_key }}"  ### Harbor certificate Key
+    harbor_cert: "{{ harbor_cert }}" ### Harbor certificate SSL
+    external_db_host: "{{ external_db_host }}"   ### Harbor User External DB Host
+    external_db_port: "{{ external_db_port }}"   ### Harbor User External DB Port
+    harbor_db_user: "{{ harbor_db_user }}" ### Harbor DB user Password
+    harbor_db_password: "{{ harbor_db_password }}" ### Harbor DB user Password
+    harbor_db_name: "{{ harbor_db_name }}" ### Harbor DB name    
+
+  roles:
+    - install_onprem_harbor

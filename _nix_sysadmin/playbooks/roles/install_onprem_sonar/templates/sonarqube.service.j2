@@ -1,0 +1,23 @@
+[Unit]
+Description= {{ sonarqube_service }}       ############### Sonar service Name
+After=syslog.target network.target
+
+[Service]
+Type=forking
+############## Sonar home start directory
+WorkingDirectory={{ sonar_home }}-{{ sonar_version }}
+############## Sonar start script user sonar /data/sonarqube/bin/linux-x86-64/sonar.sh start 
+ExecStart={{ sonar_home }}-{{ sonar_version }}/bin/linux-x86-64/sonar.sh start 
+############## Sonar stop script user sonar /data/sonarqube/bin/linux-x86-64/sonar.sh stop          
+ExecStop={{ sonar_home }}-{{ sonar_version }}/bin/linux-x86-64/sonar.sh stop 
+############### Sonar dedicated user sonar            
+User={{ sonar_user }}    
+############### Sonar dedicated group sonar                     
+Group={{ sonar_user }}    
+
+Restart=always
+LimitNOFILE=65536
+LimitNPROC=4096
+
+[Install]
+WantedBy=multi-user.target

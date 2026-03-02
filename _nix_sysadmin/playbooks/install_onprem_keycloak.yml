@@ -1,0 +1,32 @@
+#---
+# Metadata
+#version: "0.0.1"
+#author: "Michael D <dtmghislain@gmail.com>"
+#comment: "Part of ansible_labs project named nix_sysadmin for automating linux administration tasks"
+#repos_dev: https://github.com/michaeldefo/ansible_labs/tree/feature/Install_CICD_Tools- branch for DEV
+#repos_main: https://github.com/michaeldefo/ansible_labs.git to commit on global repos
+#description: Deploy CICD Tools (Jenkins, Gitea, Sonar, keycloak)
+
+- name: Deploy keycloak OnPrem Server or VM
+  hosts: all
+  become: true
+  vars:
+    keycloak_version: "{{ keycloak_version }}"     ############ keycloak version to be provide default "1.22.0"
+    keycloak_user: "{{ keycloak_user }}"                 ############ keycloak user to be provide default "keycloak" 
+    keycloak_group: "{{ keycloak_group }}"                 ############ keycloak user to be provide default "keycloak" 
+    keycloak_home: "{{ keycloak_home }}"              ############ keycloak working dir to be provide default "/var/lib/keycloak"
+    keycloak_bin: "{{ keycloak_bin }}"              ############ keycloak bin dir to be provide default "/usr/local/bin/keycloak"
+    keycloak_config: "{{ keycloak_config }}" ############ keycloak config dir to be provide default "/etc/keycloak"
+    keycloak_http_port: "{{ keycloak_http_port }}" ############ keycloak port to be provide default 9090
+    keycloak_https_port: "{{ keycloak_https_port }}" ############ keycloak port to be provide default 9443
+    keycloak_hostname: "{{ keycloak_hostname }}" ############ keycloak dns hostname
+
+# External PostgreSQL settings
+    keycloak_pgsql_host: "{{ keycloak_pgsql_host }}" ############ keycloak  db host to be provide default "db.example.com"
+    keycloak_pgsql_port: "{{ keycloak_pgsql_port }}" ############ keycloak  db port to be provide default 5432
+    keycloak_pgsql_db: "{{ keycloak_pgsql_database }}" ############ keycloak  db to be provide default "keycloakdb"
+    keycloak_pgsql_user: "{{ keycloak_pgsql_user }}" ############ keycloak user db to be provide default"keycloakuser"
+    keycloak_pgsql_password: "{{ keycloak_pgsql_password }}" ############ Keycloak user db password to be provide default "SuperSecretPassword"
+
+  roles:
+    - install_onprem_keycloak

@@ -1,0 +1,32 @@
+#---
+# Metadata
+#version: "0.0.1"
+#author: "Michael D <dtmghislain@gmail.com>"
+#comment: "Part of ansible_labs project named nix_sysadmin for automating linux administration tasks"
+#repos_dev: https://github.com/michaeldefo/ansible_labs/tree/feature/Install_CICD_Tools- branch for DEV
+#repos_main: https://github.com/michaeldefo/ansible_labs.git to commit on global repos
+#description: Deploy CICD Tools (Jenkins, Harbor, Sonar)
+
+- name: Deploy SonarQube OnPrem Server or VM
+  hosts: all
+  become: true
+  vars:
+    sonar_usr: "{{ sonar_usr }}" ### Compte dédie sonar "sonarqube"
+    sonar_group: "{{ sonar_group }}" ### Compte dédie sonar "sonarqube"
+    sonar_home: "{{ sonar_home }}" ### repertoire dédié sonar "/opt/sonarqube"
+    sonar_version: "{{ sonar_version }}"   ### version de sonar utilisé "10.5.0.93562"   # latest stable release
+    sonar_download_url: "{{ sonar_download_url }}" ############ URl D'accès au binaire "https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-{{ sonar_version }}.zip"
+    sonar_pgsql_host: "{{ sonar_pgsql_host }}"   ### Sonar User External DB Host
+    sonar_pgsql_port: "{{ sonar_pgsql_port }}"   ### Sonar User External DB Port
+    sonar_pgsql_db: "{{ sonar_pgsql_db}}"   ### Sonar DB name
+    sonar_pgsql_user: "{{ sonar_pgsql_user }}"   ### Sonar User DB User
+    sonar_pgsql_password: "{{ sonar_pgsql_password }}"   ### Sonar User DB Password
+    sonar_start_script: "{{ sonar_start_script }}"   ### Sonar service start script
+    sonar_start_stop: "{{ sonar_stop_script }}"   ### Sonar service stop script
+    sonarqube_service: "{{ sonarqube_service }}"   ### Sonar service name
+    sonar_properties_file: "{{ sonar_properties_file }}"   ### Sonar properties file
+    sonar_java_package_debian: "{{ sonar_java_package_debian }}"  ######### Java version for debian "openjdk-21-jdk"
+    sonar_java_package_redhat: "{{ sonar_java_package_redhat }}" ######### Java version for Rocky RHEL "java-21-openjdk"
+
+  roles:
+    - install_onprem_sonar

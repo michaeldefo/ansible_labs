@@ -1,0 +1,107 @@
+﻿# --- RHEL / CentOS ---
+- name: Update package cache (RHEL)
+  ansible.builtin.yum:
+    name: "*"
+    state: latest
+  when: ansible_os_family == "RedHat"
+
+- name: Install OpenJDK 21 (RHEL)
+  ansible.builtin.yum:
+    name: java-21-openjdk
+    state: present
+  when: ansible_os_family == "RedHat"
+
+- name: Add repository for OpenJDK 21
+  ansible.builtin.apt_repository:
+    repo: "ppa:openjdk-r/ppa"
+    state: present
+    filename: "openjdk-r"
+  when: ansible_os_family == "Debian"
+
+- name: Install OpenJDK 21
+  ansible.builtin.apt:
+    name: openjdk-21-jdk
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+
+- name: Ensure keycloak group exists
+  ansible.builtin.group:
+    name: "{{ keycloak_group }}"
+    state: present
+
+- name: Ensure keycloak user exists
+  ansible.builtin.user:
+    name: "{{ keycloak_user }}"
+    group: "{{ keycloak_group }}"
+    home: "{{ keycloak_install_dir }}"
+    shell: /bin/bash
+    create_home: no   # disable default home creation since it's custom
+    system: yes
+
+- name: Ensure keycloak install dir exists
+  ansible.builtin.file:
+    path: "{{ keycloak_install_dir }}"
+    state: directory
+    owner: "{{ keycloak_user }}"
+    group: "{{ keycloak_group }}"
+    mode: '0755'
+
+- name: Download Keycloak archive
+  ansible.builtin.get_url:
+    url: "https://github.com/keycloak/keycloak/releases/download/{{ keycloak_version }}/keycloak-{{ keycloak_version }}.tar.gz"
+    dest: "/tmp/keycloak-{{ keycloak_version }}.tar.gz"
+
+- name: Extract Keycloak
+  ansible.builtin.unarchive:
+    src: "/tmp/keycloak-{{ keycloak_version }}.tar.gz"
+    dest: "{{ keycloak_install_dir }}"
+    remote_src: yes
+    creates: "{{ keycloak_install_dir }}/keycloak-{{ keycloak_version }}/bin"
+
+- name: Set ownership
+  ansible.builtin.file:
+    path: "{{ keycloak_install_dir }}/keycloak-{{ keycloak_version }}"
+    state: directory
+    recurse: yes
+    owner: "{{ keycloak_user }}"
+    group: "{{ keycloak_group }}"
+
+- name: Download PostgreSQL JDBC driver
+  ansible.builtin.get_url:
+    url: "https://jdbc.postgresql.org/download/postgresql-{{ keycloak_jdbc_version | default('42.7.3') }}.jar"
+    dest: "{{ keycloak_install_dir }}/keycloak-{{ keycloak_version }}/providers/postgresql.jar"
+    owner: "{{ keycloak_user }}"
+    group: "{{ keycloak_group }}"
+    mode: '0644'
+
+- name: Configure Keycloak datasource
+  ansible.builtin.template:
+    src: keycloak.conf.j2
+    dest: "{{ keycloak_install_dir }}/keycloak-{{ keycloak_version }}/conf/keycloak.conf"
+    owner: "{{ keycloak_user }}"
+    group: "{{ keycloak_group }}"
+    mode: '0644'
+
+- name: Rebuild Keycloak with new providers
+  ansible.builtin.command:
+    cmd: "{{ keycloak_install_dir }}/keycloak-{{ keycloak_version }}/bin/kc.sh build"
+    chdir: "{{ keycloak_install_dir }}/keycloak-{{ keycloak_version }}"
+  become: true
+  become_user: "{{ keycloak_user }}"
+
+- name: Install systemd unit
+  ansible.builtin.template:
+    src: keycloak.service.j2
+    dest: /etc/systemd/system/keycloak.service
+    mode: '0644'
+
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: yes
+
+- name: Enable and start Keycloak
+  ansible.builtin.systemd:
+    name: keycloak
+    state: started
+    enabled: yes

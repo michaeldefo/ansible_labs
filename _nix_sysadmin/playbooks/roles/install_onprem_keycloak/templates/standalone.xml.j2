@@ -1,0 +1,13 @@
+<datasource jndi-name="java:jboss/datasources/KeycloakDS" pool-name="KeycloakDS" enabled="true" use-java-context="true">
+  <connection-url>jdbc:postgresql://{{ keycloak_db_host }}:{{ keycloak_db_port }}/{{ keycloak_db_name }}</connection-url>
+  <driver>postgresql</driver>
+  <security>
+    <user-name>{{ keycloak_db_user }}</user-name>
+    <password>{{ keycloak_db_password }}</password>
+  </security>
+</datasource>
+<drivers>
+  <driver name="postgresql" module="org.postgresql">
+    <xa-datasource-class>org.postgresql.xa.PGXADataSource</xa-datasource-class>
+  </driver>
+</drivers>

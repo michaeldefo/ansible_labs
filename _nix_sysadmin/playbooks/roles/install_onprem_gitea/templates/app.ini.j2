@@ -1,0 +1,19 @@
+[server]
+APP_NAME = Gitea
+RUN_USER = {{ gitea_user }}
+HTTP_PORT = {{ gitea_port }}
+ROOT_URL = http://{{ gitea_dns }}:{{ gitea_port }}/
+DISABLE_SSH = false
+SSH_PORT = 22
+LFS_START_SERVER = true
+LFS_CONTENT_PATH = {{ gitea_home }}/data/lfs
+LFS_JWT_SECRET = {{ lookup('password', '/dev/null length=32 chars=ascii_letters') }}
+
+[database]
+DB_TYPE  = postgres
+HOST     = {{ gitea_pgsql_host }}:{{ gitea_pgsql_port }}
+NAME     = {{ gitea_pgsql_db }}
+USER     = {{ gitea_pgsql_user }}
+PASSWD   = {{ gitea_pgsql_password }}
+SSL_MODE = disable
+PATH     =

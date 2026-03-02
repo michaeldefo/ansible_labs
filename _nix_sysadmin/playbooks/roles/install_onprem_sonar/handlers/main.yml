@@ -1,0 +1,15 @@
+---
+# handlers/main.yml
+
+# Ensure systemd reloads its unit files before restarting SonarQube
+- name: Reload systemd daemon
+  become: true
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+# Restart the SonarQube service
+- name: Restart SonarQube
+  become: true
+  ansible.builtin.service:
+    name: sonarqube
+    state: restarted

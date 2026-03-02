@@ -1,0 +1,109 @@
+﻿---
+# --- User & Directory Isolation ---
+- name: Create Jenkins user
+  user:
+    name: "{{ jenkins_usr }}"
+    shell: /bin/bash
+    home: "{{ jenkins_home }}"
+    create_home: yes
+    system: yes
+
+- name: Set ownership of Jenkins data
+  file:
+    path: "{{ jenkins_home }}"
+    owner: "{{ jenkins_usr }}"
+    group: "{{ jenkins_usr }}"
+    recurse: yes
+
+- name: Create Jenkins data directory
+  file:
+    path: "{{ jenkins_home }}"
+    state: directory
+    owner: "{{ jenkins_usr }}"
+    group: "{{ jenkins_usr }}"
+    mode: '0755'
+
+# --- Repository Setup 
+- name: Import Jenkins GPG key on Debian/Ubuntu
+  ansible.builtin.get_url:
+    url: https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+    dest: /usr/share/keyrings/jenkins-keyring.asc
+    mode: '0644'
+  when: ansible_os_family == "Debian"
+
+- name: Add Jenkins repo on Debian/Ubuntu
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/"
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: Import Jenkins GPG key on RHEL/CentOS
+  ansible.builtin.get_url:
+    url: https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+    dest: /etc/pki/rpm-gpg/jenkins.io-2023.key
+    mode: '0644'
+  when: ansible_os_family == "RedHat"
+
+- name: Add Jenkins repo on RHEL/CentOS
+  ansible.builtin.yum_repository:
+    name: jenkins
+    description: Jenkins LTS repo
+    baseurl: https://pkg.jenkins.io/redhat-stable/
+    gpgcheck: yes
+    gpgkey: file:///etc/pki/rpm-gpg/jenkins.io-2023.key
+    enabled: yes
+  when: ansible_os_family == "RedHat"
+
+# --- Update Package Cache ---
+- name: Update with new repos (Debian/Ubuntu)
+  ansible.builtin.shell: apt update -y
+  when: ansible_facts['os_family'] == "Debian"
+
+
+- name: Update with new repos (RHEL/CentOS/Rocky)
+  ansible.builtin.shell: dnf update -y
+  when: ansible_facts['os_family'] == "RedHat"
+
+# Add Java
+- name: Install Java (Debian)
+  apt:
+    name: openjdk-17-jdk
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: Install Java (RHEL)
+  dnf:
+    name: java-17-openjdk
+    state: present
+  when: ansible_os_family == "RedHat"
+  
+# --- Install Jenkins ---
+- name: Install Jenkins
+  package:
+    name: jenkins
+    state: present
+
+# --- Configure JENKINS_HOME ---
+- name: Set JENKINS_HOME (Debian)
+  lineinfile:
+    path: /etc/default/jenkins
+    regexp: '^JENKINS_HOME='
+    line: "JENKINS_HOME={{ jenkins_home }}"
+    create: yes
+  when: ansible_distribution == 'Debian'
+
+- name: Set JENKINS_HOME (RHEL/Rocky)
+  lineinfile:
+    path: /etc/sysconfig/jenkins
+    regexp: '^JENKINS_HOME='
+    line: "JENKINS_HOME={{ jenkins_home }}"
+    create: yes
+  when: ansible_distribution in ['RedHat', 'Rocky']
+
+# --- Service Management ---
+- name: Start Jenkins
+  systemd:
+    name: jenkins
+    state: started
+    enabled: true
+

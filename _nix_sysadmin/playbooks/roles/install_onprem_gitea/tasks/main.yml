@@ -1,0 +1,72 @@
+﻿--- 
+- name: Install required packages (Rocky)
+  dnf:
+    name:
+      - git
+      - wget
+      - postgresql
+    state: present
+  when: ansible_os_family == "RedHat"
+
+- name: Install required packages (Debian)
+  apt:
+    name:
+      - git
+      - wget
+      - postgresql-client
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+
+- name: Create gitea user
+  user:
+    name: "{{ gitea_user }}"
+    home: "{{ gitea_home }}"
+    shell: /bin/bash
+    create_home: yes
+
+- name: Create directories for Gitea
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ gitea_user }}"
+    group: "{{ gitea_user }}"
+    mode: '0755'
+  loop:
+    - "{{ gitea_home }}"
+    - "{{ gitea_config }}"
+    - "{{ gitea_home }}/custom"
+    - "{{ gitea_home }}/data"
+    - "{{ gitea_home }}/log"
+
+- name: Download Gitea binary
+  get_url:
+    url: "https://dl.gitea.io/gitea/{{ gitea_version }}/gitea-{{ gitea_version }}-linux-amd64"
+    dest: "{{ gitea_bin }}"
+    mode: '0755'
+
+- name: Deploy Gitea configuration
+  template:
+    src: "templates/app.ini.j2"
+    dest: "{{ gitea_config }}/app.ini"
+    owner: "{{ gitea_user }}"
+    group: "{{ gitea_user }}"
+    mode: '0644'
+
+- name: Deploy systemd service file
+  template:
+    src: "templates/gitea.service.j2"
+    dest: "/etc/systemd/system/gitea.service"
+    owner: "root"
+    group: "root"
+    mode: '0644'
+
+- name: Reload systemd
+  systemd:
+    daemon_reload: yes
+
+- name: Enable and start Gitea
+  systemd:
+    name: gitea
+    enabled: yes
+    state: started

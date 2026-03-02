@@ -1,0 +1,26 @@
+# Basic settings for running in production. Change accordingly before deploying the server.
+
+# Database
+db=postgres
+db-username={{ keycloak_db_user }}
+db-password={{ keycloak_db_password }}
+db-url=jdbc:postgresql://{{ keycloak_db_host }}:{{ keycloak_db_port }}/{{ keycloak_db_name }}
+
+# Observability
+health-enabled=true
+metrics-enabled=true
+
+# HTTP / HTTPS
+http-port={{ keycloak_http_port }}
+https-port={{ keycloak_https_port }}
+
+# TLS certificate paths (optional, adjust if using HTTPS)
+#https-certificate-file={{ keycloak_install_dir }}/keycloak-{{ keycloak_version }}/conf/server.crt.pem
+#https-certificate-key-file={{ keycloak_install_dir }}/keycloak-{{ keycloak_version }}/conf/server.key.pem
+
+# Reverse proxy settings
+proxy=reencrypt
+spi-sticky-session-encoder-infinispan-should-attach-route=false
+
+# Hostname
+hostname={{ keycloak_hostname }}

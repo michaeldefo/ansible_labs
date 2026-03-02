@@ -1,0 +1,100 @@
+﻿---
+    # --- OS-specific prerequisites ---
+    - name: Ensure vm.max_map_count is set for Elasticsearch
+      become: true
+      ansible.builtin.sysctl:
+       name: vm.max_map_count
+       value: 262144
+       state: present   # ensures it's persisted across reboots
+       sysctl_set: true
+    
+    # --- OS-specific prerequisites ---
+    - name: Install required packages (Debian)
+      apt:
+        name:
+          - "{{ sonar_java_package_debian }}"
+          - unzip
+          - wget
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Install required packages (Rocky/RedHat)
+      yum:
+        name:
+          - "{{ sonar_java_package_redhat }}"
+          - unzip
+          - wget
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    # --- Dedicated user & group ---
+    - name: Create SonarQube group
+      group:
+        name: "{{ sonar_group }}"
+        state: present
+
+    - name: Create SonarQube user
+      user:
+        name: "{{ sonar_user }}"
+        group: "{{ sonar_group }}"
+        home: "{{ sonar_home }}"
+        shell: /bin/bash
+        create_home: no
+        system: yes
+
+    # --- Download & install SonarQube ---
+    - name: Download SonarQube archive
+      get_url:
+        #url: "{{ sonar_download_url }}"
+        url: "https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-{{ sonar_version }}.zip"
+        dest: "/tmp/sonarqube.zip"
+
+    - name: Extract SonarQube
+      unarchive:
+        src: "/tmp/sonarqube.zip"
+        dest: "/opt/"
+        remote_src: yes
+      notify: Restart SonarQube
+
+    - name: Ensure correct ownership
+      file:
+        path: "{{ sonar_home }}-{{ sonar_version }}"
+        state: directory
+        owner: "{{ sonar_user }}"
+        group: "{{ sonar_group }}"
+        recurse: yes
+
+    # --- Configure SonarQube to use external PostgreSQL ---
+    - name: Configure sonar.properties
+      lineinfile:
+        path: "{{ sonar_home }}-{{ sonar_version }}/conf/sonar.properties"
+        regexp: '^#?sonar.jdbc.url='
+        line: "sonar.jdbc.url=jdbc:postgresql://{{ sonar_pgsql_host }}:{{ sonar_pgsql_port }}/{{ sonar_pgsql_db }}"
+      notify: Restart SonarQube
+
+    - name: Configure sonar.jdbc.username
+      lineinfile:
+        path: "{{ sonar_home }}-{{ sonar_version }}/conf/sonar.properties"
+        regexp: '^#?sonar.jdbc.username='
+        line: "sonar.jdbc.username={{ sonar_pgsql_user }}"
+      notify: Restart SonarQube
+
+    - name: Configure sonar.jdbc.password
+      lineinfile:
+        path: "{{ sonar_home }}-{{ sonar_version }}/conf/sonar.properties"
+        regexp: '^#?sonar.jdbc.password='
+        line: "sonar.jdbc.password={{ sonar_pgsql_password }}"
+      notify: Restart SonarQube
+
+    # --- Systemd service via template ---
+    - name: Deploy systemd unit file from template
+      template:
+        src: sonarqube.service.j2
+        dest: /etc/systemd/system/sonarqube.service
+      notify: Restart SonarQube
+
+    - name: Enable and start SonarQube
+      systemd:
+        name: sonarqube
+        enabled: yes
+        state: started

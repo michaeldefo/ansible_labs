@@ -1,0 +1,20 @@
+#---
+# Metadata
+#version: "0.0.1"
+#author: "Michael D <dtmghislain@gmail.com>"
+#comment: "Part of ansible_labs project named nix_sysadmin for automating linux administration tasks"
+#repos_dev: https://github.com/michaeldefo/ansible_labs/tree/feature/Install_CICD_Tools- branch for DEV
+#repos_main: https://github.com/michaeldefo/ansible_labs.git to commit on global repos
+#description: Deploy CICD Tools (Jenkins, Gitea, Sonar)
+
+- name: Deploy Jenkins OnPrem Server or VM
+  hosts: all
+  become: true
+  vars:
+    jenkins_usr: "{{ jenkins_usr }}" ### Compte dédie Jenkins
+    jenkins_home: "{{ jenkins_home }}" ### repertoire dédié Jenkins
+    jenkins_version: "{{ jenkins_version }}"   ### version de Jenkins utilisé
+    
+
+  roles:
+    - install_onprem_jenkins
