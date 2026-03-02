@@ -168,6 +168,9 @@ ansible-playbook -i _nix_sysadmin/inventory/hosts.ini _nix_sysadmin/playbooks/in
 | `add_node_exporter_prometheus` | Add Node Exporter Host to be scrapped by Prometheus Server |
 | `install_k8s_cluster_cp` | Install a K8S Control Plane Cluster |
 | `install_k8s_cluster_worker` | Install a K8S Worker Node |
+| `install_onprem_gitea` | Installa gitea server onprem/vm |
+| `install_onprem_jenkins` | Install/upgrade a jenkins server onprem/vm |
+| `install_onprem_sonar` | Install/upgrade a sonar server onprem/vm community edition |
 |*(More Other Roles to come)*||
 ---
 
@@ -178,6 +181,7 @@ ansible-playbook -i _nix_sysadmin/inventory/hosts.ini _nix_sysadmin/playbooks/in
 | 1.0.0   | Initialisation du projet et organisation des fichiers                                               | Juillet 2025  | Michael D.  |
 | 1.2.0   | Réorganisation des fichiers : déplacement du dossier `roles` vers `playbooks`                      | Octobre 2025  | Michael D.  |
 | 1.3.0   | Ajout des `roles` et `playbooks` pour l'installation d'un control pane et de node worker K8S                     | Novembre 2025  | Michael D.  |
+| 1.4.0   | Ajout des `roles` et `playbooks` pour de deploiement d'outils CI/CD Janvier 2026  | Michael D.  |
 
 ## 🤝 Contributing
 
